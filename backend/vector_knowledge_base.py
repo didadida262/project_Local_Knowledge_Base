@@ -1,305 +1,273 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-本地向量知识库实现
-支持文档向量化、存储和检索
+向量知识库
+使用Sentence Transformers和FAISS实现向量化存储和检索
 """
 
 import os
 import json
 import pickle
 import numpy as np
-from typing import List, Dict, Tuple, Optional
 from pathlib import Path
-import hashlib
-import time
-from datetime import datetime
-
-# 文档处理
-import PyPDF2
-import docx
-import markdown
-from bs4 import BeautifulSoup
-
-# 向量化
+from typing import List, Dict, Any, Tuple
 from sentence_transformers import SentenceTransformer
 import faiss
-
-# 文本处理
-import re
-import jieba
-from collections import Counter
-
-
-class DocumentProcessor:
-    """文档处理器"""
-    
-    def __init__(self):
-        self.supported_extensions = {'.txt', '.md', '.pdf', '.docx', '.html', '.htm'}
-        
-    def extract_text_from_file(self, file_path: str) -> str:
-        """从文件中提取文本"""
-        file_path = Path(file_path)
-        if not file_path.exists():
-            raise FileNotFoundError(f"文件不存在: {file_path}")
-        
-        extension = file_path.suffix.lower()
-        
-        try:
-            if extension == '.txt':
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    return f.read()
-            
-            elif extension == '.md':
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    md_content = f.read()
-                    html = markdown.markdown(md_content)
-                    soup = BeautifulSoup(html, 'html.parser')
-                    return soup.get_text()
-            
-            elif extension == '.pdf':
-                text = ""
-                with open(file_path, 'rb') as f:
-                    pdf_reader = PyPDF2.PdfReader(f)
-                    for page in pdf_reader.pages:
-                        text += page.extract_text()
-                return text
-            
-            elif extension == '.docx':
-                doc = docx.Document(file_path)
-                text = ""
-                for paragraph in doc.paragraphs:
-                    text += paragraph.text + "\n"
-                return text
-            
-            elif extension in ['.html', '.htm']:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    soup = BeautifulSoup(f.read(), 'html.parser')
-                    return soup.get_text()
-            
-            else:
-                raise ValueError(f"不支持的文件格式: {extension}")
-                
-        except Exception as e:
-            print(f"处理文件 {file_path} 时出错: {e}")
-            return ""
-    
-    def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
-        """将文本分块"""
-        if len(text) <= chunk_size:
-            return [text]
-        
-        chunks = []
-        start = 0
-        
-        while start < len(text):
-            end = start + chunk_size
-            
-            # 尝试在句号、问号、感叹号处分割
-            if end < len(text):
-                for i in range(end, max(start + chunk_size // 2, end - 100), -1):
-                    if text[i] in '。！？\n':
-                        end = i + 1
-                        break
-            
-            chunk = text[start:end].strip()
-            if chunk:
-                chunks.append(chunk)
-            
-            start = end - overlap
-            if start >= len(text):
-                break
-        
-        return chunks
-    
-    def preprocess_text(self, text: str) -> str:
-        """预处理文本"""
-        # 移除多余的空白字符
-        text = re.sub(r'\s+', ' ', text)
-        # 移除特殊字符但保留中文、英文、数字和基本标点
-        text = re.sub(r'[^\w\s\u4e00-\u9fff.,!?;:()（）]', '', text)
-        return text.strip()
+from document_processor import DocumentProcessor
 
 
 class VectorKnowledgeBase:
-    """向量知识库"""
+    """向量知识库类"""
     
-    def __init__(self, 
-                 model_name: str = "all-MiniLM-L6-v2",
-                 dimension: int = 384,
-                 storage_dir: str = "./knowledge_base"):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", storage_dir: str = "./knowledge_base"):
         """
         初始化向量知识库
         
         Args:
-            model_name: 句子嵌入模型名称
-            dimension: 向量维度
+            model_name: 句子转换模型名称
             storage_dir: 存储目录
         """
-        self.dimension = dimension
+        self.model_name = model_name
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
         
         # 初始化模型
-        print(f"加载嵌入模型: {model_name}")
-        self.embedding_model = SentenceTransformer(model_name)
+        print(f"🔄 加载模型: {model_name}")
+        self.model = SentenceTransformer(model_name)
+        self.dimension = self.model.get_sentence_embedding_dimension()
         
         # 初始化FAISS索引
-        self.index = faiss.IndexFlatIP(dimension)  # 使用内积相似度
-        self.documents = []  # 存储文档信息
-        self.metadata = []   # 存储元数据
+        self.index = faiss.IndexFlatIP(self.dimension)  # 内积相似度
+        self.documents = []
+        self.chunks = []
         
-        # 文档处理器
-        self.doc_processor = DocumentProcessor()
-        
-        # 加载现有数据
-        self.load_knowledge_base()
+        # 加载已存在的知识库
+        self._load_knowledge_base()
     
-    def add_document(self, file_path: str, metadata: Optional[Dict] = None) -> bool:
-        """添加文档到知识库"""
+    def add_document(self, file_path: str) -> Dict[str, Any]:
+        """
+        添加单个文档到知识库
+        
+        Args:
+            file_path: 文档路径
+            
+        Returns:
+            处理结果
+        """
         try:
-            print(f"处理文档: {file_path}")
+            processor = DocumentProcessor()
+            doc_info = processor.process_document(file_path)
             
-            # 提取文本
-            text = self.doc_processor.extract_text_from_file(file_path)
-            if not text:
-                print(f"无法从文件中提取文本: {file_path}")
-                return False
+            # 生成向量
+            embeddings = self.model.encode(doc_info['chunks'])
             
-            # 预处理文本
-            text = self.doc_processor.preprocess_text(text)
-            
-            # 分块
-            chunks = self.doc_processor.chunk_text(text)
-            
-            # 为每个块生成嵌入
-            embeddings = self.embedding_model.encode(chunks)
-            
-            # 添加到索引
+            # 添加到FAISS索引
             self.index.add(embeddings.astype('float32'))
             
-            # 存储文档信息
-            file_hash = hashlib.md5(str(file_path).encode()).hexdigest()
-            for i, chunk in enumerate(chunks):
-                doc_info = {
-                    'file_path': str(file_path),
-                    'file_hash': file_hash,
-                    'chunk_index': i,
-                    'chunk_text': chunk,
-                    'timestamp': datetime.now().isoformat(),
-                    'metadata': metadata or {}
-                }
-                self.documents.append(doc_info)
-                self.metadata.append(doc_info)
+            # 保存文档信息
+            doc_id = len(self.documents)
+            doc_info['doc_id'] = doc_id
+            doc_info['chunk_start'] = len(self.chunks)
+            doc_info['chunk_end'] = len(self.chunks) + len(doc_info['chunks'])
             
-            print(f"成功添加文档: {file_path} ({len(chunks)} 个块)")
-            return True
+            self.documents.append(doc_info)
+            
+            # 保存文本块
+            for i, chunk in enumerate(doc_info['chunks']):
+                self.chunks.append({
+                    'doc_id': doc_id,
+                    'chunk_id': i,
+                    'text': chunk,
+                    'embedding': embeddings[i].tolist()
+                })
+            
+            print(f"✅ 文档已添加: {doc_info['file_name']} ({doc_info['chunk_count']} 块)")
+            return doc_info
             
         except Exception as e:
-            print(f"添加文档失败 {file_path}: {e}")
-            return False
+            print(f"❌ 添加文档失败: {file_path} - {str(e)}")
+            raise
     
-    def add_directory(self, directory_path: str, recursive: bool = True) -> int:
-        """添加目录中的所有文档"""
-        directory_path = Path(directory_path)
-        if not directory_path.exists():
-            print(f"目录不存在: {directory_path}")
-            return 0
+    def add_directory(self, directory_path: str) -> List[Dict[str, Any]]:
+        """
+        添加目录中的所有文档
         
-        added_count = 0
-        pattern = "**/*" if recursive else "*"
+        Args:
+            directory_path: 目录路径
+            
+        Returns:
+            处理结果列表
+        """
+        processor = DocumentProcessor()
+        documents = processor.process_directory(directory_path)
         
-        for file_path in directory_path.glob(pattern):
-            if file_path.is_file() and file_path.suffix.lower() in self.doc_processor.supported_extensions:
-                if self.add_document(str(file_path)):
-                    added_count += 1
+        results = []
+        for doc_info in documents:
+            try:
+                # 生成向量
+                embeddings = self.model.encode(doc_info['chunks'])
+                
+                # 添加到FAISS索引
+                self.index.add(embeddings.astype('float32'))
+                
+                # 保存文档信息
+                doc_id = len(self.documents)
+                doc_info['doc_id'] = doc_id
+                doc_info['chunk_start'] = len(self.chunks)
+                doc_info['chunk_end'] = len(self.chunks) + len(doc_info['chunks'])
+                
+                self.documents.append(doc_info)
+                
+                # 保存文本块
+                for i, chunk in enumerate(doc_info['chunks']):
+                    self.chunks.append({
+                        'doc_id': doc_id,
+                        'chunk_id': i,
+                        'text': chunk,
+                        'embedding': embeddings[i].tolist()
+                    })
+                
+                results.append(doc_info)
+                print(f"✅ 文档已添加: {doc_info['file_name']} ({doc_info['chunk_count']} 块)")
+                
+            except Exception as e:
+                print(f"❌ 添加文档失败: {doc_info['file_name']} - {str(e)}")
         
-        print(f"总共添加了 {added_count} 个文档")
-        return added_count
+        return results
     
-    def search(self, query: str, top_k: int = 5) -> List[Dict]:
-        """搜索相关文档"""
-        if self.index.ntotal == 0:
+    def search(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """
+        搜索相关文档
+        
+        Args:
+            query: 查询文本
+            top_k: 返回结果数量
+            
+        Returns:
+            搜索结果列表
+        """
+        if len(self.chunks) == 0:
             return []
         
         # 生成查询向量
-        query_embedding = self.embedding_model.encode([query])
+        query_embedding = self.model.encode([query])
         
-        # 搜索
+        # 搜索相似向量
         scores, indices = self.index.search(query_embedding.astype('float32'), top_k)
         
         results = []
         for score, idx in zip(scores[0], indices[0]):
-            if idx < len(self.documents):
-                result = self.documents[idx].copy()
-                result['similarity_score'] = float(score)
-                results.append(result)
+            if idx < len(self.chunks):
+                chunk = self.chunks[idx]
+                doc = self.documents[chunk['doc_id']]
+                
+                results.append({
+                    'chunk_id': idx,
+                    'doc_id': chunk['doc_id'],
+                    'file_path': doc['file_path'],
+                    'file_name': doc['file_name'],
+                    'text': chunk['text'],
+                    'similarity': float(score),
+                    'chunk_index': chunk['chunk_id']
+                })
         
         return results
     
-    def save_knowledge_base(self):
-        """保存知识库"""
-        try:
-            # 保存FAISS索引
-            faiss.write_index(self.index, str(self.storage_dir / "faiss_index.bin"))
-            
-            # 保存文档信息
-            with open(self.storage_dir / "documents.json", 'w', encoding='utf-8') as f:
-                json.dump(self.documents, f, ensure_ascii=False, indent=2)
-            
-            # 保存元数据
-            with open(self.storage_dir / "metadata.json", 'w', encoding='utf-8') as f:
-                json.dump(self.metadata, f, ensure_ascii=False, indent=2)
-            
-            print(f"知识库已保存到: {self.storage_dir}")
-            return True
-            
-        except Exception as e:
-            print(f"保存知识库失败: {e}")
-            return False
-    
-    def load_knowledge_base(self):
-        """加载知识库"""
-        try:
-            # 加载FAISS索引
-            index_path = self.storage_dir / "faiss_index.bin"
-            if index_path.exists():
-                self.index = faiss.read_index(str(index_path))
-                print(f"加载FAISS索引: {self.index.ntotal} 个向量")
-            
-            # 加载文档信息
-            docs_path = self.storage_dir / "documents.json"
-            if docs_path.exists():
-                with open(docs_path, 'r', encoding='utf-8') as f:
-                    self.documents = json.load(f)
-                print(f"加载文档信息: {len(self.documents)} 个文档块")
-            
-            # 加载元数据
-            meta_path = self.storage_dir / "metadata.json"
-            if meta_path.exists():
-                with open(meta_path, 'r', encoding='utf-8') as f:
-                    self.metadata = json.load(f)
-                print(f"加载元数据: {len(self.metadata)} 条记录")
-            
-            return True
-            
-        except Exception as e:
-            print(f"加载知识库失败: {e}")
-            return False
-    
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> Dict[str, Any]:
         """获取知识库统计信息"""
+        total_chunks = len(self.chunks)
+        total_documents = len(self.documents)
+        unique_files = len(set(doc['file_path'] for doc in self.documents))
+        
         return {
-            'total_vectors': self.index.ntotal if hasattr(self.index, 'ntotal') else 0,
-            'total_documents': len(self.documents),
-            'unique_files': len(set(doc['file_path'] for doc in self.documents)),
-            'storage_dir': str(self.storage_dir),
+            'total_vectors': total_chunks,
+            'total_documents': total_documents,
+            'unique_files': unique_files,
+            'model_name': self.model_name,
             'dimension': self.dimension
         }
+    
+    def get_documents(self) -> List[Dict[str, Any]]:
+        """获取所有文档信息"""
+        return [
+            {
+                'file_path': doc['file_path'],
+                'file_name': doc['file_name'],
+                'chunk_count': doc['chunk_count'],
+                'word_count': doc['word_count'],
+                'file_size': doc['file_size']
+            }
+            for doc in self.documents
+        ]
+    
+    def save_knowledge_base(self):
+        """保存知识库到磁盘"""
+        # 保存FAISS索引
+        faiss.write_index(self.index, str(self.storage_dir / "faiss_index.bin"))
+        
+        # 保存文档信息
+        with open(self.storage_dir / "documents.json", 'w', encoding='utf-8') as f:
+            json.dump(self.documents, f, ensure_ascii=False, indent=2)
+        
+        # 保存文本块
+        with open(self.storage_dir / "chunks.json", 'w', encoding='utf-8') as f:
+            json.dump(self.chunks, f, ensure_ascii=False, indent=2)
+        
+        # 保存配置
+        config = {
+            'model_name': self.model_name,
+            'dimension': self.dimension,
+            'total_documents': len(self.documents),
+            'total_chunks': len(self.chunks)
+        }
+        with open(self.storage_dir / "config.json", 'w', encoding='utf-8') as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        
+        print(f"💾 知识库已保存到: {self.storage_dir}")
+    
+    def _load_knowledge_base(self):
+        """从磁盘加载知识库"""
+        config_file = self.storage_dir / "config.json"
+        if not config_file.exists():
+            print("📝 创建新的知识库")
+            return
+        
+        try:
+            # 加载配置
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            
+            # 加载FAISS索引
+            index_file = self.storage_dir / "faiss_index.bin"
+            if index_file.exists():
+                self.index = faiss.read_index(str(index_file))
+            
+            # 加载文档信息
+            docs_file = self.storage_dir / "documents.json"
+            if docs_file.exists():
+                with open(docs_file, 'r', encoding='utf-8') as f:
+                    self.documents = json.load(f)
+            
+            # 加载文本块
+            chunks_file = self.storage_dir / "chunks.json"
+            if chunks_file.exists():
+                with open(chunks_file, 'r', encoding='utf-8') as f:
+                    self.chunks = json.load(f)
+            
+            print(f"📚 知识库已加载: {config['total_documents']} 文档, {config['total_chunks']} 块")
+            
+        except Exception as e:
+            print(f"⚠️ 加载知识库失败: {str(e)}")
+            print("📝 将创建新的知识库")
     
     def clear_knowledge_base(self):
         """清空知识库"""
         self.index = faiss.IndexFlatIP(self.dimension)
         self.documents = []
-        self.metadata = []
-        print("知识库已清空")
+        self.chunks = []
+        
+        # 删除存储文件
+        for file in self.storage_dir.glob("*"):
+            file.unlink()
+        
+        print("🗑️ 知识库已清空")

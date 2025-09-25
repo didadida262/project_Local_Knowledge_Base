@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { MessageCircle, Send, FileText, TrendingUp } from 'lucide-react'
-// import { motion, div } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { askQuestion } from '../services/api'
 
 interface QAResult {
@@ -8,9 +8,12 @@ interface QAResult {
   answer: string
   sources: Array<{
     file_path: string
-    similarity_score: number
-    chunk_preview: string
+    file_name: string
+    text: string
+    similarity: number
+    chunk_index: number
   }>
+  confidence: number
 }
 
 const QATab: React.FC = () => {
@@ -41,66 +44,53 @@ const QATab: React.FC = () => {
     return filePath.split('/').pop() || filePath
   }
 
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence > 0.8) return 'text-green-400'
+    if (confidence > 0.6) return 'text-yellow-400'
+    return 'text-red-400'
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div className="space-y-8">
       {/* Question Form */}
-      <div
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass"
-        style={{ borderRadius: '16px', padding: '32px', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+        className="glass rounded-3xl p-8 border border-white/10"
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-          <div style={{ position: 'relative' }}>
-            <MessageCircle size={32} color="#8b5cf6" style={{ filter: 'drop-shadow(0 0 10px #8b5cf6)' }} />
+        <div className="flex items-center gap-4 mb-6">
+          <div className="relative">
+            <MessageCircle size={32} className="text-purple-400 drop-shadow-lg" />
           </div>
           <div>
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               AI问答
             </h2>
-            <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>基于知识库内容的智能问答</p>
+            <p className="text-white/60 text-sm">基于知识库内容的智能问答</p>
           </div>
         </div>
 
-        <form onSubmit={handleAsk} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ position: 'relative' }}>
-            <MessageCircle style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.6)' }} size={20} />
+        <form onSubmit={handleAsk} className="space-y-4">
+          <div className="relative">
+            <MessageCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
             <input
               type="text"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="输入问题，基于知识库内容回答..."
-              className="input"
-              style={{ paddingLeft: '48px' }}
+              className="w-full pl-12 pr-4 py-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-purple-400/50"
             />
           </div>
           
           <motion.button
             type="submit"
             disabled={loading || !question.trim()}
-            className="btn"
-            style={{
-              width: '100%',
-              padding: '16px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
-              color: 'white',
-              borderRadius: '12px',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '16px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '12px',
-              opacity: (loading || !question.trim()) ? 0.5 : 1,
-              pointerEvents: (loading || !question.trim()) ? 'none' : 'auto'
-            }}
+            className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             {loading ? (
-              <div style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
                 <Send size={20} />
@@ -109,90 +99,97 @@ const QATab: React.FC = () => {
             )}
           </motion.button>
         </form>
-      </div>
+      </motion.div>
 
       {/* Error Message */}
-      <div>
+      <AnimatePresence>
         {error && (
-          <div
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="glass"
-            style={{ borderRadius: '12px', padding: '16px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}
+            className="glass rounded-xl p-4 border border-red-500/30 bg-red-500/10"
           >
-            <p style={{ color: '#f87171' }}>{error}</p>
-          </div>
+            <p className="text-red-400">{error}</p>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       {/* Answer */}
-      <div>
+      <AnimatePresence>
         {result && (
-          <div
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
+            className="space-y-6"
           >
-            <div className="glass" style={{ borderRadius: '16px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MessageCircle size={20} color="#8b5cf6" />
+            <div className="glass rounded-2xl p-6 border border-white/10">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <MessageCircle size={20} className="text-purple-400" />
                 问题: {result.question}
               </h3>
-              <div style={{ color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+              <div className="text-white/80 leading-relaxed whitespace-pre-wrap">
                 {result.answer}
               </div>
+              {result.confidence > 0 && (
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-sm text-white/60">置信度:</span>
+                  <span className={`text-sm font-medium ${getConfidenceColor(result.confidence)}`}>
+                    {(result.confidence * 100).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Sources */}
             {result.sources && result.sources.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <h4 style={{ fontSize: '18px', fontWeight: '600', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <TrendingUp size={20} color="#10b981" />
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <TrendingUp size={20} className="text-green-400" />
                   参考文档
                 </h4>
-                <div style={{ display: 'grid', gap: '12px' }}>
+                <div className="grid gap-3">
                   {result.sources.map((source, index) => (
-                    <div key={index} className="glass" style={{ borderRadius: '12px', padding: '16px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FileText size={16} color="#3b82f6" />
-                          <span style={{ fontWeight: '500', color: 'white' }}>{getFileName(source.file_path)}</span>
+                    <div key={index} className="glass rounded-xl p-4 border border-white/10">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <FileText size={16} className="text-blue-400" />
+                          <span className="font-medium text-white">{getFileName(source.file_path)}</span>
                         </div>
-                        <span style={{ fontSize: '14px', color: '#3b82f6', fontWeight: '500' }}>
-                          相似度: {source.similarity_score.toFixed(3)}
+                        <span className="text-sm text-blue-400 font-medium">
+                          相似度: {source.similarity.toFixed(3)}
                         </span>
                       </div>
-                      <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', lineHeight: '1.5' }}>
-                        {source.chunk_preview}
+                      <p className="text-white/70 text-sm leading-relaxed line-clamp-2">
+                        {source.text}
                       </p>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
       {/* No Result */}
-      <div>
+      <AnimatePresence>
         {!result && !loading && question && (
-          <div
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            style={{ textAlign: 'center', padding: '64px 0' }}
+            className="text-center py-16"
           >
-            <div className="glass" style={{ borderRadius: '16px', padding: '48px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <MessageCircle size={64} color="rgba(255, 255, 255, 0.4)" style={{ margin: '0 auto 24px' }} />
-              <h3 style={{ fontSize: '20px', fontWeight: '600', color: 'white', marginBottom: '8px' }}>等待回答...</h3>
-              <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>AI正在分析您的问题</p>
+            <div className="glass rounded-3xl p-12 border border-white/10">
+              <MessageCircle size={64} className="text-white/40 mx-auto mb-6" />
+              <h3 className="text-xl font-semibold text-white mb-2">等待回答...</h3>
+              <p className="text-white/60">AI正在分析您的问题</p>
             </div>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   )
 }

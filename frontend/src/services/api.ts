@@ -52,3 +52,15 @@ export const addDocument = async (filePath: string) => {
   })
   return response.data
 }
+
+// 重建知识库
+export const rebuildKnowledgeBase = async () => {
+  const response = await api.post('/rebuild')
+  return response.data
+}
+
+// 健康检查
+export const healthCheck = async () => {
+  const response = await api.get('/health')
+  return response.data
+}

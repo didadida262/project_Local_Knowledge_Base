@@ -1,159 +1,211 @@
-# 🧠 本地向量知识库
+# 本地向量知识库系统
 
-一个完整的本地向量知识库系统，支持文档向量化、智能检索和基于Ollama的问答功能。
+基于Ollama大语言模型的智能文档检索与问答系统，支持多格式文档的向量化存储和语义搜索。
 
-## ✨ 功能特性
+## ✨ 核心特性
 
-- 📄 **多格式文档支持**: PDF, Word, Markdown, HTML, TXT
-- 🔍 **智能向量检索**: 基于语义相似度的文档搜索
-- 🤖 **AI问答**: 集成Ollama大模型进行智能问答
-- 🌐 **现代化界面**: 炫酷React暗黑系界面
-- 🚀 **一键启动**: 多种启动方式，自动处理依赖
-- 🔒 **完全本地**: 所有数据和处理都在本地进行
-
-## 🛠️ 技术栈
-
-### 后端
-- **Python 3.8+** + **Flask** + **Sentence Transformers** + **FAISS** + **Ollama**
-
-### 前端
-- **React 18** + **TypeScript** + **Vite** + **Tailwind CSS** + **Framer Motion**
-- **Aceternity UI** 暗黑系设计
+- **🤖 AI驱动**: 基于本地Ollama大语言模型
+- **📚 多格式支持**: PDF、Word、Markdown、HTML、TXT等
+- **🔍 智能搜索**: 语义搜索和关键词搜索
+- **💬 AI问答**: 基于文档内容的智能问答
+- **🎨 现代界面**: React + TypeScript + Aceternity UI
+- **🔒 完全本地**: 数据不上传云端，保护隐私
 
 ## 🚀 快速开始
 
-### 一键启动
+### 1. 环境要求
 
-**Windows用户:**
+- Python 3.8+
+- Node.js 16+
+- Ollama (本地部署)
+
+### 2. 安装Ollama
+
 ```bash
-# 双击运行（推荐）
+# 下载并安装Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# 拉取模型
+ollama pull qwen2.5:7b
+```
+
+### 3. 一键启动
+
+**Windows:**
+```bash
 start.bat
 ```
 
-**Linux/Mac用户:**
+**Linux/Mac:**
 ```bash
-# 直接启动API服务器
-python backend/api_server.py
-
-# 启动前端（需要Node.js）
-cd frontend && npm install && npm run dev
+./start.sh
 ```
 
-### 启动模式
+### 4. 访问应用
 
-- **模式1**: 全栈启动 (React前端 - 推荐)
-- **模式2**: 仅构建知识库
-- **模式3**: 仅启动API服务器
+- 前端界面: http://localhost:3000
+- 后端API: http://127.0.0.1:5000
 
 ## 📁 项目结构
 
 ```
 project_Local_Knowledge_Base/
-├── start.bat                 # 一键启动脚本
-├── backend/                  # 后端代码
-│   ├── api_server.py         # API服务器
-│   ├── vector_knowledge_base.py
-│   ├── knowledge_retriever.py
-│   └── knowledge_base_main.py
-├── frontend/                 # React前端
-│   ├── src/components/       # 暗黑系组件
-│   ├── package.json
-│   └── tailwind.config.js
-├── docs/                     # 文档目录
-├── knowledge_base/           # 知识库存储
-└── requirements.txt
+├── backend/                 # 后端代码
+│   ├── document_processor.py    # 文档处理器
+│   ├── vector_knowledge_base.py # 向量知识库
+│   ├── knowledge_retriever.py  # 知识检索器
+│   └── api_server.py           # API服务器
+├── frontend/                # 前端代码
+│   ├── src/
+│   │   ├── components/         # React组件
+│   │   ├── services/           # API服务
+│   │   └── App.tsx             # 主应用
+│   └── package.json
+├── docs/                    # 默认文档目录
+├── start.bat               # Windows启动脚本
+├── start.sh                # Linux/Mac启动脚本
+└── requirements.txt        # Python依赖
+```
+
+## 🛠️ 技术栈
+
+### 后端
+- **Python 3.8+**: 核心语言
+- **Sentence Transformers**: 文本向量化
+- **FAISS**: 向量索引存储
+- **PyPDF2**: PDF文档处理
+- **python-docx**: Word文档处理
+- **BeautifulSoup4**: HTML解析
+- **jieba**: 中文分词
+
+### 前端
+- **React 18**: UI框架
+- **TypeScript**: 类型安全
+- **Vite**: 构建工具
+- **Aceternity UI**: 暗黑主题UI库
+- **Tailwind CSS**: 样式框架
+- **Framer Motion**: 动画库
+- **Axios**: HTTP客户端
+
+### AI模型
+- **Ollama**: 本地大语言模型
+- **qwen2.5:7b**: 推荐模型
+
+## 📖 使用指南
+
+### 1. 添加文档
+
+将文档放入 `docs/` 目录，支持格式：
+- TXT文本文件
+- Markdown文档
+- PDF文档
+- Word文档
+- HTML网页
+
+### 2. 智能搜索
+
+在搜索页面输入关键词，系统会基于语义相似度返回相关文档片段。
+
+### 3. AI问答
+
+在问答页面提问，AI会基于知识库内容生成答案，并提供参考文档。
+
+### 4. 文档管理
+
+查看已添加的文档列表，支持重新构建知识库。
+
+## 🔧 开发模式
+
+### 后端开发
+```bash
+cd backend
+python api_server.py
+```
+
+### 前端开发
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 📊 API接口
+
+### 获取统计信息
+```http
+GET /api/stats
+```
+
+### 搜索文档
+```http
+POST /api/search
+Content-Type: application/json
+
+{
+  "query": "搜索关键词",
+  "top_k": 10
+}
+```
+
+### AI问答
+```http
+POST /api/ask
+Content-Type: application/json
+
+{
+  "question": "用户问题",
+  "top_k": 5
+}
+```
+
+### 获取文档列表
+```http
+GET /api/documents
 ```
 
 ## 🎨 界面预览
 
-### React暗黑系界面
-- 炫酷的暗黑主题
-- 渐变背景 + 玻璃效果
-- 流畅的动画过渡
-- 现代化的用户体验
-- 支持搜索、问答、文档管理
+- **暗黑主题**: Aceternity UI风格
+- **动态背景**: 渐变光效和网格背景
+- **流畅动画**: Framer Motion动画效果
+- **响应式设计**: 适配各种屏幕尺寸
 
-## 📖 使用方法
+## 🔒 隐私安全
 
-### 1. 准备文档
-将文档放入 `docs/` 目录
+- **完全本地**: 所有数据存储在本地
+- **无网络传输**: 除模型下载外无网络传输
+- **数据加密**: 敏感数据本地加密存储
+- **访问控制**: 仅本地网络访问
 
-### 2. 启动系统
-```bash
-# Windows用户
-start.bat
+## 🚀 性能优化
 
-# Linux/Mac用户
-python backend/api_server.py
-```
+- **向量索引**: FAISS高效向量搜索
+- **文档分块**: 智能文本分块处理
+- **缓存机制**: 向量和索引缓存
+- **并发支持**: 支持多用户同时使用
 
-### 3. 开始使用
-- 访问React界面进行搜索和问答
-- 支持文档上传和管理
-- 基于语义相似度的智能检索
+## 📝 更新日志
 
-## 🔧 配置选项
+### v1.0.0 (2024-09)
+- ✨ 初始版本发布
+- 🎨 Aceternity UI暗黑主题
+- 🤖 Ollama集成
+- 📚 多格式文档支持
+- 🔍 智能搜索功能
+- 💬 AI问答功能
 
-### 向量化模型
-```python
-# 在 backend/vector_knowledge_base.py 中修改
-kb = VectorKnowledgeBase(
-    model_name="all-MiniLM-L6-v2",  # 可选其他模型
-    dimension=384
-)
-```
+## 🤝 贡献指南
 
-### Ollama模型
-```python
-# 在 backend/knowledge_retriever.py 中修改
-retriever = KnowledgeRetriever(
-    ollama_model="gemma3:4b"  # 或其他模型
-)
-```
-
-## 📊 支持的文档格式
-
-| 格式 | 扩展名 | 支持状态 |
-|------|--------|----------|
-| 纯文本 | .txt | ✅ |
-| Markdown | .md | ✅ |
-| PDF | .pdf | ✅ |
-| Word | .docx | ✅ |
-| HTML | .html, .htm | ✅ |
-
-## 🚨 故障排除
-
-### 常见问题
-1. **启动卡住**: 使用 `python quick_start.py`
-2. **内存不足**: 关闭其他程序或使用内存优化版本
-3. **模型下载失败**: 检查网络连接
-4. **前端依赖问题**: 使用 `python start_simple.py`
-
-### 环境要求
-- Python 3.8+
-- Ollama已安装并运行
-- 至少4GB可用内存
-- 网络连接（用于下载模型）
-
-## 🎯 使用场景
-
-- **个人知识管理**: 整理和检索个人文档
-- **企业文档系统**: 构建内部知识库
-- **学术研究**: 文献检索和分析
-- **技术支持**: 基于文档的智能客服
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request！
+1. Fork 项目
+2. 创建功能分支
+3. 提交更改
+4. 推送到分支
+5. 创建 Pull Request
 
 ## 📄 许可证
 
 MIT License
 
-## 🙏 致谢
+---
 
-- [Sentence Transformers](https://www.sbert.net/)
-- [FAISS](https://github.com/facebookresearch/faiss)
-- [Ollama](https://ollama.ai/)
-- [React](https://react.dev/)
-- [Aceternity UI](https://ui.aceternity.com/)
+**本地向量知识库系统** - 让AI更智能，让知识更易获取 🚀
