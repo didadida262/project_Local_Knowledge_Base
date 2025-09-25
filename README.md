@@ -22,50 +22,36 @@
 
 ## 🚀 快速开始
 
-### 1. 一键启动（推荐）
+### 一键启动
 
 **Windows用户:**
 ```bash
-# 双击运行
+# 双击运行（推荐）
 start.bat
-
-# 或命令行运行
-python start.py
 ```
 
 **Linux/Mac用户:**
 ```bash
-# 运行启动脚本
-./start.sh
+# 直接启动API服务器
+python backend/api_server.py
 
-# 或直接运行
-python3 start.py
+# 启动前端（需要Node.js）
+cd frontend && npm install && npm run dev
 ```
 
-### 2. 启动模式选择
+### 启动模式
 
-- **模式1**: 后端API + React前端 (全栈)
+- **模式1**: 全栈启动 (React前端 - 推荐)
 - **模式2**: 仅构建知识库
-
-### 3. 其他启动方式
-
-```bash
-# 全栈启动（React前端）
-python start_fullstack.py
-
-# 快速启动（避免卡住）
-python quick_start.py
-```
+- **模式3**: 仅启动API服务器
 
 ## 📁 项目结构
 
 ```
 project_Local_Knowledge_Base/
-├── start.py                  # 统一启动脚本
-├── start_fullstack.py        # 全栈启动脚本
-├── quick_start.py            # 快速启动脚本
-├── start.bat                 # Windows启动脚本
+├── start.bat                 # 一键启动脚本
 ├── backend/                  # 后端代码
+│   ├── api_server.py         # API服务器
 │   ├── vector_knowledge_base.py
 │   ├── knowledge_retriever.py
 │   └── knowledge_base_main.py
@@ -94,7 +80,11 @@ project_Local_Knowledge_Base/
 
 ### 2. 启动系统
 ```bash
-python start.py
+# Windows用户
+start.bat
+
+# Linux/Mac用户
+python backend/api_server.py
 ```
 
 ### 3. 开始使用
