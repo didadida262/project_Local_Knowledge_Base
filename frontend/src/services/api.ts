@@ -24,7 +24,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.code === 'ECONNREFUSED' || error.message.includes('ECONNREFUSED')) {
       // 连接被拒绝，可能是服务器还在启动
+      console.warn('🔄 服务器连接被拒绝，可能是服务器正在启动...')
       throw new Error('服务器正在启动中，请稍候...')
+    }
+    if (error.code === 'ECONNRESET') {
+      // 连接被重置，服务器可能崩溃了
+      console.warn('🔄 连接被重置，服务器可能重启中...')
+      throw new Error('服务器重启中，请稍候...')
     }
     return Promise.reject(error)
   }
