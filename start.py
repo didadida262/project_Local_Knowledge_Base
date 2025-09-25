@@ -11,8 +11,7 @@ import time
 import subprocess
 import webbrowser
 from pathlib import Path
-from vector_knowledge_base import VectorKnowledgeBase
-from knowledge_retriever import KnowledgeRetriever
+from backend.vector_knowledge_base import VectorKnowledgeBase
 
 
 class KnowledgeBaseManager:
@@ -128,81 +127,41 @@ class KnowledgeBaseManager:
             print("💡 提示: 如果模型下载失败，请检查网络连接")
             return False
     
-    def start_web_interface(self):
-        """启动Web界面"""
-        print("\n" + "=" * 60)
-        print("🌐 启动Web界面")
-        print("=" * 60)
-        
-        try:
-            # 导入并启动Web界面
-            from web_interface import app, init_knowledge_base
-            
-            # 初始化知识库
-            init_knowledge_base(str(self.knowledge_base_dir))
-            
-            print("🚀 启动Web服务器...")
-            print("📱 访问地址: http://127.0.0.1:5000")
-            print("💡 提示: 按 Ctrl+C 停止服务器")
-            print("=" * 60)
-            
-            # 自动打开浏览器
-            try:
-                webbrowser.open('http://127.0.0.1:5000')
-                print("🌐 已自动打开浏览器")
-            except:
-                print("⚠️  无法自动打开浏览器，请手动访问 http://127.0.0.1:5000")
-            
-            # 启动Flask应用
-            app.run(debug=False, host='127.0.0.1', port=5000, threaded=True)
-            
-        except KeyboardInterrupt:
-            print("\n👋 服务器已停止")
-        except Exception as e:
-            print(f"❌ 启动Web界面失败: {e}")
-    
-    def rebuild_after_upload(self, uploaded_files):
-        """用户上传文件后重建知识库"""
-        print("\n" + "=" * 60)
-        print("📁 检测到新文档，正在重建知识库...")
-        print("=" * 60)
-        
-        # 显示上传的文件
-        print("📄 新上传的文件:")
-        for file in uploaded_files:
-            print(f"   - {file}")
-        
-        # 重建知识库
-        if self.build_knowledge_base(force_rebuild=True):
-            print("✅ 知识库重建完成，新文档已可用")
-            return True
-        else:
-            print("❌ 知识库重建失败")
-            return False
 
 
 def main():
     """主函数"""
     print("🚀 本地向量知识库启动器")
     print("=" * 60)
+    print("选择启动模式:")
+    print("1. 后端API + React前端 (全栈)")
+    print("2. 仅构建知识库")
     
-    # 创建管理器
-    manager = KnowledgeBaseManager()
+    choice = input("\n请选择 (1-2): ").strip()
     
-    # 检查docs目录
-    if not manager.check_docs_directory():
-        print("\n💡 请将文档放入docs目录后重新运行")
-        input("按回车键退出...")
+    if choice == "1":
+        # 全栈启动
+        print("\n🚀 启动全栈应用...")
+        try:
+            subprocess.run([sys.executable, "start_fullstack.py"])
+        except KeyboardInterrupt:
+            print("\n👋 程序已退出")
+        return
+    elif choice == "2":
+        # 仅构建知识库
+        print("\n🔨 仅构建知识库...")
+        manager = KnowledgeBaseManager()
+        if manager.check_docs_directory():
+            manager.build_knowledge_base()
         return
     
-    # 构建知识库
-    if not manager.build_knowledge_base():
-        print("\n❌ 知识库构建失败")
-        input("按回车键退出...")
-        return
-    
-    # 启动Web界面
-    manager.start_web_interface()
+    # 默认启动全栈应用
+    print("\n🚀 启动全栈应用...")
+    try:
+        subprocess.run([sys.executable, "start_fullstack.py"])
+    except KeyboardInterrupt:
+        print("\n👋 程序已退出")
+    return
 
 
 if __name__ == "__main__":

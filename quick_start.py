@@ -35,34 +35,11 @@ def start_web_interface():
     print("🌐 启动Web界面")
     print("=" * 60)
     
-    try:
-        # 导入并启动Web界面
-        from web_interface import app, init_knowledge_base
-        
-        # 初始化知识库
-        print("🔄 正在初始化知识库...")
-        init_knowledge_base("./knowledge_base")
-        
-        print("🚀 启动Web服务器...")
-        print("📱 访问地址: http://127.0.0.1:5000")
-        print("💡 提示: 按 Ctrl+C 停止服务器")
-        print("=" * 60)
-        
-        # 自动打开浏览器
-        try:
-            webbrowser.open('http://127.0.0.1:5000')
-            print("🌐 已自动打开浏览器")
-        except:
-            print("⚠️  无法自动打开浏览器，请手动访问 http://127.0.0.1:5000")
-        
-        # 启动Flask应用
-        app.run(debug=False, host='127.0.0.1', port=5000, threaded=True)
-        
-    except KeyboardInterrupt:
-        print("\n👋 服务器已停止")
-    except Exception as e:
-        print(f"❌ 启动Web界面失败: {e}")
-        print("💡 请检查依赖是否安装: pip install -r requirements.txt")
+    print("❌ 传统Web界面已移除")
+    print("💡 请使用以下方式启动:")
+    print("   - python start_fullstack.py (React前端)")
+    print("   - python start_simple.py (简化启动)")
+    input("按回车键退出...")
 
 
 def main():

@@ -32,7 +32,25 @@ if errorlevel 1 (
 
 REM 启动应用
 echo 🚀 启动知识库系统...
-echo 💡 如果启动卡住，请使用: python quick_start.py
-python quick_start.py
+echo 选择启动方式:
+echo 1. 全栈启动 (React前端 - 推荐)
+echo 2. 快速启动 (避免卡住)
+echo.
+
+set /p choice=请选择 (1-2): 
+
+if "%choice%"=="1" (
+    echo.
+    echo 🎨 全栈启动...
+    python start_fullstack.py
+) else if "%choice%"=="2" (
+    echo.
+    echo ⚡ 快速启动...
+    python quick_start.py
+) else (
+    echo.
+    echo ❌ 无效选择，使用默认启动
+    python start_fullstack.py
+)
 
 pause

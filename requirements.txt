@@ -7,4 +7,5 @@ markdown>=3.4.0
 beautifulsoup4>=4.11.0
 jieba>=0.42.1
 flask>=2.2.0
+flask-cors>=3.0.0
 numpy>=1.21.0
