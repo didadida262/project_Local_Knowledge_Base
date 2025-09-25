@@ -54,6 +54,7 @@ project_Local_Knowledge_Base/
 │   ├── document_processor.py    # 文档处理器
 │   ├── vector_knowledge_base.py # 向量知识库
 │   ├── knowledge_retriever.py  # 知识检索器
+│   ├── reranker.py             # 重排模型
 │   └── api_server.py           # API服务器
 ├── frontend/                # 前端代码
 │   ├── src/
