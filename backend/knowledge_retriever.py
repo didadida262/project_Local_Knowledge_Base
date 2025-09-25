@@ -7,6 +7,7 @@
 
 import requests
 import json
+import time
 from typing import List, Dict, Any
 from .vector_knowledge_base import VectorKnowledgeBase
 
@@ -101,34 +102,61 @@ class KnowledgeRetriever:
 
 请基于上述文档内容回答问题："""
 
-        try:
-            response = requests.post(
-                f"{self.ollama_url}/api/generate",
-                json={
-                    "model": self.ollama_model,
-                    "prompt": prompt,
-                    "stream": False,
-                    "options": {
-                        "temperature": 0.7,
-                        "top_p": 0.9,
-                        "max_tokens": 1000
-                    }
-                },
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                return result.get('response', '抱歉，无法生成答案。')
-            else:
-                return f"Ollama服务错误: {response.status_code} - {response.text}"
+        # 添加重试机制
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                print(f"🔄 尝试调用Ollama (第{attempt + 1}次)...")
+                response = requests.post(
+                    f"{self.ollama_url}/api/generate",
+                    json={
+                        "model": self.ollama_model,
+                        "prompt": prompt,
+                        "stream": False,
+                        "options": {
+                            "temperature": 0.7,
+                            "top_p": 0.9,
+                            "max_tokens": 1000
+                        }
+                    },
+                    timeout=60  # 增加超时时间
+                )
                 
-        except requests.exceptions.ConnectionError:
-            return "无法连接到Ollama服务，请确保Ollama正在运行。"
-        except requests.exceptions.Timeout:
-            return "Ollama服务响应超时，请稍后重试。"
-        except Exception as e:
-            return f"生成答案时发生错误: {str(e)}"
+                if response.status_code == 200:
+                    result = response.json()
+                    print("✅ Ollama调用成功")
+                    return result.get('response', '抱歉，无法生成答案。')
+                else:
+                    print(f"⚠️ Ollama返回错误: {response.status_code}")
+                    if attempt < max_retries - 1:
+                        print(f"🔄 等待2秒后重试...")
+                        time.sleep(2)
+                        continue
+                    return f"Ollama服务错误: {response.status_code} - {response.text}"
+                    
+            except requests.exceptions.ConnectionError as e:
+                print(f"❌ 连接错误: {e}")
+                if attempt < max_retries - 1:
+                    print(f"🔄 等待3秒后重试...")
+                    time.sleep(3)
+                    continue
+                return "无法连接到Ollama服务，请确保Ollama正在运行。"
+            except requests.exceptions.Timeout as e:
+                print(f"⏰ 超时错误: {e}")
+                if attempt < max_retries - 1:
+                    print(f"🔄 等待2秒后重试...")
+                    time.sleep(2)
+                    continue
+                return "Ollama服务响应超时，请稍后重试。"
+            except Exception as e:
+                print(f"❌ 未知错误: {e}")
+                if attempt < max_retries - 1:
+                    print(f"🔄 等待2秒后重试...")
+                    time.sleep(2)
+                    continue
+                return f"生成答案时发生错误: {str(e)}"
+        
+        return "多次重试失败，请检查Ollama服务状态。"
     
     def _calculate_confidence(self, search_results: List[Dict[str, Any]]) -> float:
         """计算答案置信度"""

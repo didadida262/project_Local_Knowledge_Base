@@ -168,13 +168,19 @@ class APIHandler(BaseHTTPRequestHandler):
                 self.send_error(400, "Question parameter is required")
                 return
             
+            print(f"🤖 处理问答请求: {question[:50]}...")
             result = self.retriever.ask_question(question, top_k)
+            print(f"✅ 问答处理完成")
+            
             self.send_response(200)
             self.send_cors_headers()
             self.end_headers()
             self.wfile.write(json.dumps(result).encode())
         except Exception as e:
-            self.send_error(500, f"Ask failed: {str(e)}")
+            import traceback
+            error_msg = f"Ask failed: {str(e)}\n{traceback.format_exc()}"
+            print(f"❌ 问答处理失败: {error_msg}")
+            self.send_error(500, error_msg)
     
     def handle_upload(self):
         """处理文件上传请求"""
