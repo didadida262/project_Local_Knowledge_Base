@@ -74,6 +74,8 @@ project_Local_Knowledge_Base/
 - **Python 3.8+**: 核心语言
 - **Sentence Transformers**: 文本向量化
 - **FAISS**: 向量索引存储
+- **Transformers**: 重排模型支持
+- **PyTorch**: 深度学习框架
 - **PyPDF2**: PDF文档处理
 - **python-docx**: Word文档处理
 - **BeautifulSoup4**: HTML解析
@@ -89,8 +91,37 @@ project_Local_Knowledge_Base/
 - **Axios**: HTTP客户端
 
 ### AI模型
-- **Ollama**: 本地大语言模型
-- **qwen2.5:7b**: 推荐模型
+- **嵌入模型**: all-MiniLM-L6-v2 (384维向量)
+- **推理模型**: gemma3:4b (Ollama本地部署)
+- **重排模型**: BAAI/bge-reranker-large (搜索结果优化)
+- **Ollama**: 本地大语言模型服务
+
+## 🤖 模型配置
+
+### 嵌入模型 (Embedding Model)
+- **模型名称**: `all-MiniLM-L6-v2`
+- **类型**: Sentence Transformers
+- **向量维度**: 384维
+- **用途**: 将文档文本转换为向量表示，用于语义搜索
+- **特点**: 轻量级、高效、支持多语言
+
+### 推理模型 (Inference Model)
+- **模型名称**: `gemma3:4b`
+- **类型**: Ollama本地大语言模型
+- **用途**: 基于检索到的文档内容生成AI回答
+- **服务地址**: http://localhost:11434
+- **特点**: 本地部署、隐私安全、支持中文
+
+### 重排模型 (Rerank Model)
+- **模型名称**: `BAAI/bge-reranker-large`
+- **类型**: Transformers重排模型
+- **用途**: 对FAISS初步检索结果进行重新排序，提升相关性
+- **特点**: 高精度、支持长文本、免费开源
+
+### 模型工作流程
+```
+文档输入 → 嵌入模型 → FAISS向量索引 → 语义搜索 → 重排模型 → 优化排序 → 推理模型 → AI回答
+```
 
 ## 📖 使用指南
 
