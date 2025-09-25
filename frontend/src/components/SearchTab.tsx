@@ -38,58 +38,77 @@ const SearchTab: React.FC = () => {
   }
 
   const getSimilarityColor = (similarity: number) => {
-    if (similarity > 0.8) return 'from-green-500 to-emerald-500'
-    if (similarity > 0.6) return 'from-yellow-500 to-orange-500'
-    return 'from-red-500 to-pink-500'
+    if (similarity > 0.8) return '#10b981'
+    if (similarity > 0.6) return '#f59e0b'
+    return '#ef4444'
   }
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Search Form */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass rounded-2xl p-8 border border-white/10"
+        className="glass"
+        style={{ borderRadius: '16px', padding: '32px', border: '1px solid rgba(255, 255, 255, 0.1)' }}
       >
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="relative">
-            <Search className="h-8 w-8 text-cyan-400 glow" />
-            <Sparkles className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={32} color="#22d3ee" style={{ filter: 'drop-shadow(0 0 10px #22d3ee)' }} />
+            <Sparkles size={16} color="#fbbf24" style={{ position: 'absolute', top: '-4px', right: '-4px', animation: 'pulse 2s infinite' }} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               智能搜索
             </h2>
-            <p className="text-sm text-muted-foreground">基于语义相似度的文档检索</p>
+            <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>基于语义相似度的文档检索</p>
           </div>
         </div>
 
-        <form onSubmit={handleSearch} className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <form onSubmit={handleSearch} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ position: 'relative' }}>
+            <Search style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.6)' }} size={20} />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="输入关键词搜索相关文档..."
-              className="w-full pl-12 pr-4 py-4 glass border border-white/20 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-transparent text-white placeholder:text-muted-foreground transition-all duration-300"
+              className="input"
+              style={{ paddingLeft: '48px' }}
             />
           </div>
           
           <motion.button
             type="submit"
             disabled={loading || !query.trim()}
-            className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 font-medium transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="btn"
+            style={{
+              width: '100%',
+              padding: '16px',
+              background: 'linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%)',
+              color: 'white',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+              opacity: (loading || !query.trim()) ? 0.5 : 1,
+              pointerEvents: (loading || !query.trim()) ? 'none' : 'auto'
+            }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             {loading ? (
-              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              <div style={{ width: '20px', height: '20px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             ) : (
               <>
-                <Search className="h-5 w-5" />
+                <Search size={20} />
                 开始搜索
-                <Zap className="h-4 w-4" />
+                <Zap size={16} />
               </>
             )}
           </motion.button>
@@ -103,10 +122,11 @@ const SearchTab: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="glass border border-red-500/30 rounded-xl p-4 bg-red-500/10"
+            className="glass"
+            style={{ borderRadius: '12px', padding: '16px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}
           >
-            <p className="text-red-400 flex items-center gap-2">
-              <Filter className="h-4 w-4" />
+            <p style={{ color: '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Filter size={16} />
               {error}
             </p>
           </motion.div>
@@ -120,60 +140,72 @@ const SearchTab: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
+            style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}
           >
-            <div className="flex items-center space-x-3">
-              <TrendingUp className="h-6 w-6 text-green-400" />
-              <h3 className="text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <TrendingUp size={24} color="#10b981" />
+              <h3 style={{ fontSize: '20px', fontWeight: 'bold', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 搜索结果
               </h3>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                <div style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
                 <span>找到 {results.length} 个相关结果</span>
               </div>
             </div>
             
-            <div className="grid gap-4">
+            <div style={{ display: 'grid', gap: '16px' }}>
               {results.map((result, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="glass rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 group"
+                  className="glass"
+                  style={{
+                    borderRadius: '12px',
+                    padding: '24px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    transition: 'all 0.3s'
+                  }}
                   whileHover={{ scale: 1.02, y: -2 }}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 shadow-lg">
-                        <FileText className="h-5 w-5 text-white" />
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ padding: '8px', borderRadius: '8px', background: 'linear-gradient(135deg, #3b82f6 0%, #22d3ee 100%)', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}>
+                        <FileText size={20} color="white" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
-                          {getFileName(result.file_path)}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">文档路径</p>
+                        <h4 style={{ fontWeight: '600', color: 'white', marginBottom: '4px' }}>{getFileName(result.file_path)}</h4>
+                        <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>文档路径</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
-                      <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${getSimilarityColor(result.max_similarity)} text-white text-sm font-medium shadow-lg`}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        background: `linear-gradient(135deg, ${getSimilarityColor(result.max_similarity)} 0%, ${getSimilarityColor(result.max_similarity)}80 100%)`,
+                        color: 'white',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                      }}>
                         {result.max_similarity.toFixed(3)}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
-                    <p className="text-muted-foreground leading-relaxed line-clamp-3">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.6)', lineHeight: '1.6', maxHeight: '60px', overflow: 'hidden' }}>
                       {result.preview}
                     </p>
                     
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>
+                        <div style={{ width: '6px', height: '6px', background: '#22d3ee', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
                         <span>语义匹配</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>
                         相似度: {(result.max_similarity * 100).toFixed(1)}%
                       </div>
                     </div>
@@ -192,12 +224,12 @@ const SearchTab: React.FC = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="text-center py-16"
+            style={{ textAlign: 'center', padding: '64px 0' }}
           >
-            <div className="glass rounded-2xl p-12 border border-white/10">
-              <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-50" />
-              <h3 className="text-xl font-semibold text-white mb-2">未找到相关文档</h3>
-              <p className="text-muted-foreground">尝试使用不同的关键词或检查文档是否已添加到知识库</p>
+            <div className="glass" style={{ borderRadius: '16px', padding: '48px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <FileText size={64} color="rgba(255, 255, 255, 0.4)" style={{ margin: '0 auto 24px' }} />
+              <h3 style={{ fontSize: '20px', fontWeight: '600', color: 'white', marginBottom: '8px' }}>未找到相关文档</h3>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>尝试使用不同的关键词或检查文档是否已添加到知识库</p>
             </div>
           </motion.div>
         )}

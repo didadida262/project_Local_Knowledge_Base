@@ -17,7 +17,6 @@ function App() {
   const [activeTab, setActiveTab] = useState<'search' | 'qa' | 'documents'>('search')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
     // 强制暗黑模式
@@ -43,49 +42,81 @@ function App() {
   ] as const
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 dark">
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)' }}>
       {/* 背景装饰 */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-40 left-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '4s' }}></div>
+      <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <div style={{
+          position: 'absolute',
+          top: '-160px',
+          right: '-160px',
+          width: '320px',
+          height: '320px',
+          background: 'purple',
+          borderRadius: '50%',
+          opacity: 0.2,
+          animation: 'float 6s ease-in-out infinite'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '-160px',
+          left: '-160px',
+          width: '320px',
+          height: '320px',
+          background: 'cyan',
+          borderRadius: '50%',
+          opacity: 0.2,
+          animation: 'float 6s ease-in-out infinite 2s'
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '160px',
+          left: '50%',
+          width: '320px',
+          height: '320px',
+          background: 'pink',
+          borderRadius: '50%',
+          opacity: 0.2,
+          animation: 'float 6s ease-in-out infinite 4s'
+        }}></div>
       </div>
 
       {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 glass border-b border-white/10"
+        className="glass"
+        style={{ position: 'relative', zIndex: 10, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '80px' }}>
             <motion.div 
-              className="flex items-center space-x-4"
+              style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
               whileHover={{ scale: 1.05 }}
             >
-              <div className="relative">
-                <BarChart3 className="h-10 w-10 text-cyan-400 glow" />
-                <Sparkles className="h-4 w-4 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
+              <div style={{ position: 'relative' }}>
+                <BarChart3 size={40} color="#22d3ee" style={{ filter: 'drop-shadow(0 0 10px #22d3ee)' }} />
+                <Sparkles size={16} color="#fbbf24" style={{ position: 'absolute', top: '-4px', right: '-4px', animation: 'pulse 2s infinite' }} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                <h1 style={{ fontSize: '32px', fontWeight: 'bold', background: 'linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   本地向量知识库
                 </h1>
-                <p className="text-sm text-muted-foreground">AI驱动的智能文档检索系统</p>
+                <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>AI驱动的智能文档检索系统</p>
               </div>
             </motion.div>
             
-            <div className="flex items-center space-x-6">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               {stats && (
                 <motion.div 
-                  className="text-sm text-muted-foreground glass px-4 py-2 rounded-lg"
+                  className="glass"
+                  style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)', padding: '8px 16px', borderRadius: '8px' }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
-                  <div className="flex items-center space-x-2">
-                    <Zap className="h-4 w-4 text-yellow-400" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Zap size={16} color="#fbbf24" />
                     <span>向量: {stats.total_vectors.toLocaleString()}</span>
-                    <span className="text-white/50">|</span>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>|</span>
                     <span>文档: {stats.unique_files}</span>
                   </div>
                 </motion.div>
@@ -109,9 +140,9 @@ function App() {
       </AnimatePresence>
 
       {/* Tabs */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="glass rounded-2xl p-2 mt-8">
-          <nav className="flex space-x-2">
+      <div style={{ position: 'relative', zIndex: 10, maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
+        <div className="glass" style={{ borderRadius: '16px', padding: '8px', marginTop: '32px' }}>
+          <nav style={{ display: 'flex', gap: '8px' }}>
             {tabs.map((tab, index) => {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
@@ -119,27 +150,26 @@ function App() {
                 <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative flex items-center py-4 px-6 rounded-xl font-medium text-sm transition-all duration-300 ${
-                    isActive
-                      ? 'text-white'
-                      : 'text-muted-foreground hover:text-white'
-                  }`}
+                  style={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '16px 24px',
+                    borderRadius: '12px',
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    transition: 'all 0.3s',
+                    color: isActive ? 'white' : 'rgba(255, 255, 255, 0.6)',
+                    background: isActive ? `linear-gradient(135deg, ${tab.color.split(' ')[1]} 0%, ${tab.color.split(' ')[3]} 100%)` : 'transparent'
+                  }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  {isActive && (
-                    <motion.div
-                      className={`absolute inset-0 bg-gradient-to-r ${tab.color} rounded-xl`}
-                      layoutId="activeTab"
-                      initial={false}
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <Icon className={`h-5 w-5 mr-3 relative z-10 ${isActive ? 'text-white' : ''}`} />
-                  <span className="relative z-10">{tab.label}</span>
+                  <Icon size={20} style={{ marginRight: '12px' }} />
+                  <span>{tab.label}</span>
                 </motion.button>
               )
             })}
@@ -148,7 +178,7 @@ function App() {
 
         {/* Tab Content */}
         <motion.div 
-          className="mt-8"
+          style={{ marginTop: '32px' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}

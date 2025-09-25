@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Upload, FileText, Plus, Trash2, CheckCircle } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getDocuments, uploadDocument, addDocument } from '../services/api'
 
 interface Document {
@@ -93,125 +94,184 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ onUpload }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Add Document Form */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <Plus className="h-5 w-5" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass"
+        style={{ borderRadius: '16px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+      >
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Plus size={20} color="#10b981" />
           添加本地文档
         </h3>
-        <form onSubmit={handleAddDocument} className="flex gap-4">
+        <form onSubmit={handleAddDocument} style={{ display: 'flex', gap: '16px' }}>
           <input
             type="text"
             value={filePath}
             onChange={(e) => setFilePath(e.target.value)}
             placeholder="输入文件路径..."
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="input"
+            style={{ flex: 1 }}
           />
-          <button
+          <motion.button
             type="submit"
             disabled={uploading || !filePath.trim()}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="btn"
+            style={{
+              padding: '12px 24px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              opacity: (uploading || !filePath.trim()) ? 0.5 : 1,
+              pointerEvents: (uploading || !filePath.trim()) ? 'none' : 'auto'
+            }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             {uploading ? (
-              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+              <div style={{ width: '16px', height: '16px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
             ) : (
               <>
-                <Plus className="h-5 w-5" />
+                <Plus size={16} />
                 添加
               </>
             )}
-          </button>
+          </motion.button>
         </form>
-      </div>
+      </motion.div>
 
       {/* Upload Documents */}
-      <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8">
-        <div className="text-center">
-          <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">上传文档</h3>
-          <p className="text-gray-500 mb-4">
-            支持格式: TXT, MD, PDF, DOCX, HTML
-          </p>
-          <input
-            type="file"
-            multiple
-            accept=".txt,.md,.pdf,.docx,.html,.htm"
-            onChange={handleFileUpload}
-            disabled={uploading}
-            className="hidden"
-            id="file-upload"
-          />
-          <label
-            htmlFor="file-upload"
-            className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg cursor-pointer ${
-              uploading
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
-          >
-            {uploading ? (
-              <div className="animate-spin h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full mr-2" />
-            ) : (
-              <Upload className="h-5 w-5 mr-2" />
-            )}
-            {uploading ? '上传中...' : '选择文件'}
-          </label>
-        </div>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass"
+        style={{ borderRadius: '16px', padding: '32px', border: '2px dashed rgba(255, 255, 255, 0.3)', textAlign: 'center' }}
+      >
+        <Upload size={48} color="rgba(255, 255, 255, 0.4)" style={{ margin: '0 auto 16px' }} />
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '8px' }}>上传文档</h3>
+        <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginBottom: '16px' }}>
+          支持格式: TXT, MD, PDF, DOCX, HTML
+        </p>
+        <input
+          type="file"
+          multiple
+          accept=".txt,.md,.pdf,.docx,.html,.htm"
+          onChange={handleFileUpload}
+          disabled={uploading}
+          style={{ display: 'none' }}
+          id="file-upload"
+        />
+        <label
+          htmlFor="file-upload"
+          className="btn"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 24px',
+            background: uploading ? 'rgba(255, 255, 255, 0.1)' : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: uploading ? 'rgba(255, 255, 255, 0.4)' : 'white',
+            borderRadius: '8px',
+            cursor: uploading ? 'not-allowed' : 'pointer',
+            transition: 'all 0.3s'
+          }}
+        >
+          {uploading ? (
+            <div style={{ width: '16px', height: '16px', border: '2px solid rgba(255, 255, 255, 0.4)', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          ) : (
+            <Upload size={16} />
+          )}
+          {uploading ? '上传中...' : '选择文件'}
+        </label>
+      </motion.div>
 
       {/* Message */}
-      {message && (
-        <div className={`rounded-lg p-4 flex items-center gap-2 ${
-          message.type === 'success' 
-            ? 'bg-green-50 border border-green-200 text-green-800' 
-            : 'bg-red-50 border border-red-200 text-red-800'
-        }`}>
-          {message.type === 'success' ? (
-            <CheckCircle className="h-5 w-5" />
-          ) : (
-            <Trash2 className="h-5 w-5" />
-          )}
-          {message.text}
-        </div>
-      )}
+      <AnimatePresence>
+        {message && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="glass"
+            style={{
+              borderRadius: '12px',
+              padding: '16px',
+              border: `1px solid ${message.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+              background: message.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'
+            }}
+          >
+            <p style={{ color: message.type === 'success' ? '#10b981' : '#f87171', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {message.type === 'success' ? <CheckCircle size={16} /> : <Trash2 size={16} />}
+              {message.text}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Documents List */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <FileText className="h-5 w-5" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass"
+        style={{ borderRadius: '16px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+      >
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FileText size={20} color="#3b82f6" />
           文档列表
         </h3>
         
         {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-gray-500">加载中...</p>
+          <div style={{ textAlign: 'center', padding: '32px' }}>
+            <div style={{ width: '32px', height: '32px', border: '3px solid #3b82f6', borderTop: '3px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+            <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>加载中...</p>
           </div>
         ) : documents.length === 0 ? (
-          <div className="text-center py-8">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">暂无文档</p>
+          <div style={{ textAlign: 'center', padding: '32px' }}>
+            <FileText size={48} color="rgba(255, 255, 255, 0.4)" style={{ margin: '0 auto 16px' }} />
+            <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>暂无文档</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div style={{ display: 'grid', gap: '12px' }}>
             {documents.map((doc, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-blue-600" />
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="glass"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  transition: 'all 0.3s'
+                }}
+                whileHover={{ scale: 1.02, y: -2 }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <FileText size={20} color="#3b82f6" />
                   <div>
-                    <p className="font-medium text-gray-900">{getFileName(doc.file_path)}</p>
-                    <p className="text-sm text-gray-500">
+                    <p style={{ fontWeight: '500', color: 'white', marginBottom: '4px' }}>{getFileName(doc.file_path)}</p>
+                    <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>
                       块数: {doc.chunk_count} | 
                       最后修改: {doc.last_modified || '未知'}
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   )
 }

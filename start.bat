@@ -105,19 +105,22 @@ if "%choice%"=="1" (
         echo 📦 安装前端依赖...
         cd frontend
         if not exist "node_modules" (
+            echo 🔄 正在安装依赖，请稍候...
             npm install
             if errorlevel 1 (
                 echo ❌ 前端依赖安装失败，使用简化模式
                 cd ..
                 goto :api_only
             )
+        ) else (
+            echo ✅ 前端依赖已安装
         )
         cd ..
         echo 🚀 启动全栈应用...
         start "后端API" cmd /k "python backend/api_server.py"
         timeout /t 3 /nobreak >nul
         echo 🌐 启动前端开发服务器...
-        start "前端界面" cmd /k "cd frontend && npm run dev"
+        start "前端界面" cmd /k "cd frontend && start-dev.bat"
         echo ✅ 全栈应用已启动
         echo 📱 前端地址: http://localhost:3000
         echo 🔧 后端API: http://127.0.0.1:5000
