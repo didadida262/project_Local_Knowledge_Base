@@ -38,7 +38,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-6 mb-8">
+    <div className="max-w-7xl mx-auto px-6 mb-8 mt-8">
       <motion.div 
         className="relative p-8 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10"
         initial={{ opacity: 0, y: 20 }}

@@ -8,13 +8,13 @@
 import requests
 import json
 from typing import List, Dict, Any
-from vector_knowledge_base import VectorKnowledgeBase
+from .vector_knowledge_base import VectorKnowledgeBase
 
 
 class KnowledgeRetriever:
     """知识检索器类"""
     
-    def __init__(self, knowledge_base: VectorKnowledgeBase, ollama_url: str = "http://localhost:11434", ollama_model: str = "qwen2.5:7b"):
+    def __init__(self, knowledge_base: VectorKnowledgeBase, ollama_url: str = "http://localhost:11434", ollama_model: str = "gemma3:4b"):
         """
         初始化知识检索器
         
@@ -121,7 +121,7 @@ class KnowledgeRetriever:
                 result = response.json()
                 return result.get('response', '抱歉，无法生成答案。')
             else:
-                return f"Ollama服务错误: {response.status_code}"
+                return f"Ollama服务错误: {response.status_code} - {response.text}"
                 
         except requests.exceptions.ConnectionError:
             return "无法连接到Ollama服务，请确保Ollama正在运行。"

@@ -17,8 +17,8 @@ import threading
 # 添加当前目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from vector_knowledge_base import VectorKnowledgeBase
-from knowledge_retriever import KnowledgeRetriever
+from .vector_knowledge_base import VectorKnowledgeBase
+from .knowledge_retriever import KnowledgeRetriever
 
 
 class APIHandler(BaseHTTPRequestHandler):
@@ -135,9 +135,24 @@ class APIHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_cors_headers()
             self.end_headers()
-            self.wfile.write(json.dumps({"results": results}).encode())
+            # 确保所有数据都是JSON可序列化的
+            serializable_results = []
+            for result in results:
+                serializable_result = {
+                    'chunk_id': int(result['chunk_id']),
+                    'doc_id': int(result['doc_id']),
+                    'file_path': str(result['file_path']),
+                    'file_name': str(result['file_name']),
+                    'text': str(result['text']),
+                    'similarity': float(result['similarity']),
+                    'chunk_index': int(result['chunk_index'])
+                }
+                serializable_results.append(serializable_result)
+            self.wfile.write(json.dumps({"results": serializable_results}).encode())
         except Exception as e:
-            self.send_error(500, f"Search failed: {str(e)}")
+            import traceback
+            error_msg = f"Search failed: {str(e)}\n{traceback.format_exc()}"
+            self.send_error(500, error_msg)
     
     def handle_ask(self):
         """处理问答请求"""

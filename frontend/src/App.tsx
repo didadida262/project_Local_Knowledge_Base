@@ -166,6 +166,7 @@ function App() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30 }}
               transition={{ delay: 0.3 }}
+              className="mt-8"
             >
               <StatsCard stats={stats} />
             </motion.div>

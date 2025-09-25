@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from sentence_transformers import SentenceTransformer
 import faiss
-from document_processor import DocumentProcessor
+from .document_processor import DocumentProcessor
 
 
 class VectorKnowledgeBase:
@@ -157,18 +157,20 @@ class VectorKnowledgeBase:
         
         results = []
         for score, idx in zip(scores[0], indices[0]):
+            # 确保索引是Python int类型
+            idx = int(idx)
             if idx < len(self.chunks):
                 chunk = self.chunks[idx]
                 doc = self.documents[chunk['doc_id']]
                 
                 results.append({
-                    'chunk_id': idx,
-                    'doc_id': chunk['doc_id'],
-                    'file_path': doc['file_path'],
-                    'file_name': doc['file_name'],
-                    'text': chunk['text'],
+                    'chunk_id': int(idx),
+                    'doc_id': int(chunk['doc_id']),
+                    'file_path': str(doc['file_path']),
+                    'file_name': str(doc['file_name']),
+                    'text': str(chunk['text']),
                     'similarity': float(score),
-                    'chunk_index': chunk['chunk_id']
+                    'chunk_index': int(chunk['chunk_id'])
                 })
         
         return results
@@ -180,22 +182,22 @@ class VectorKnowledgeBase:
         unique_files = len(set(doc['file_path'] for doc in self.documents))
         
         return {
-            'total_vectors': total_chunks,
-            'total_documents': total_documents,
-            'unique_files': unique_files,
-            'model_name': self.model_name,
-            'dimension': self.dimension
+            'total_vectors': int(total_chunks),
+            'total_documents': int(total_documents),
+            'unique_files': int(unique_files),
+            'model_name': str(self.model_name),
+            'dimension': int(self.dimension)
         }
     
     def get_documents(self) -> List[Dict[str, Any]]:
         """获取所有文档信息"""
         return [
             {
-                'file_path': doc['file_path'],
-                'file_name': doc['file_name'],
-                'chunk_count': doc['chunk_count'],
-                'word_count': doc['word_count'],
-                'file_size': doc['file_size']
+                'file_path': str(doc['file_path']),
+                'file_name': str(doc['file_name']),
+                'chunk_count': int(doc['chunk_count']),
+                'word_count': int(doc['word_count']),
+                'file_size': int(doc['file_size'])
             }
             for doc in self.documents
         ]
