@@ -14,13 +14,12 @@ from typing import List, Dict, Any, Tuple
 from sentence_transformers import SentenceTransformer
 import faiss
 from .document_processor import DocumentProcessor
-from .reranker import Reranker
 
 
 class VectorKnowledgeBase:
     """向量知识库类"""
     
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2", storage_dir: str = "./knowledge_base", use_reranker: bool = True):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2", storage_dir: str = "./knowledge_base"):
         """
         初始化向量知识库
         
@@ -32,26 +31,10 @@ class VectorKnowledgeBase:
         self.model_name = model_name
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
-        self.use_reranker = use_reranker
-        
         # 初始化模型
         print(f"🔄 加载模型: {model_name}")
         self.model = SentenceTransformer(model_name)
         self.dimension = self.model.get_sentence_embedding_dimension()
-        
-        # 初始化重排模型
-        if self.use_reranker:
-            try:
-                print("🔄 正在加载重排模型，这可能需要几分钟...")
-                self.reranker = Reranker()
-                print("✅ 重排模型加载成功")
-            except Exception as e:
-                print(f"⚠️ 重排模型加载失败: {e}")
-                print("📝 将使用基础搜索模式")
-                self.use_reranker = False
-                self.reranker = None
-        else:
-            self.reranker = None
         
         # 初始化FAISS索引
         self.index = faiss.IndexFlatIP(self.dimension)  # 内积相似度
@@ -169,11 +152,10 @@ class VectorKnowledgeBase:
         # 生成查询向量
         query_embedding = self.model.encode([query])
         
-        # 搜索相似向量（获取更多候选结果用于重排）
-        search_k = min(top_k * 3, len(self.chunks)) if self.use_reranker else top_k
-        scores, indices = self.index.search(query_embedding.astype('float32'), search_k)
+        # 搜索相似向量
+        scores, indices = self.index.search(query_embedding.astype('float32'), top_k)
         
-        # 构建初始结果
+        # 构建结果
         results = []
         for score, idx in zip(scores[0], indices[0]):
             # 确保索引是Python int类型
@@ -192,19 +174,6 @@ class VectorKnowledgeBase:
                     'chunk_index': int(chunk['chunk_id'])
                 })
         
-        # 使用重排模型重新排序
-        if self.use_reranker and self.reranker is not None and len(results) > 1:
-            try:
-                print(f"🔄 使用重排模型优化搜索结果...")
-                results = self.reranker.rerank(query, results, top_k)
-                print(f"✅ 重排完成，返回 {len(results)} 个结果")
-            except Exception as e:
-                print(f"⚠️ 重排失败: {e}")
-                print("📝 使用原始搜索结果")
-                results = results[:top_k]
-        else:
-            results = results[:top_k]
-        
         return results
     
     def get_stats(self) -> Dict[str, Any]:
@@ -218,9 +187,7 @@ class VectorKnowledgeBase:
             'total_documents': int(total_documents),
             'unique_files': int(unique_files),
             'model_name': str(self.model_name),
-            'dimension': int(self.dimension),
-            'use_reranker': self.use_reranker,
-            'reranker_model': self.reranker.get_model_info()['model_name'] if self.reranker else None
+            'dimension': int(self.dimension)
         }
     
     def get_documents(self) -> List[Dict[str, Any]]:
