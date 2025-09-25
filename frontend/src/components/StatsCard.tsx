@@ -1,6 +1,6 @@
 import React from 'react'
 import { BarChart3, FileText, Hash, TrendingUp, Sparkles, Zap } from 'lucide-react'
-import { motion } from 'framer-motion'
+// import { motion } from 'framer-motion'
 
 interface Stats {
   total_vectors: number
@@ -39,7 +39,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
 
   return (
     <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px 24px' }}>
-      <motion.div 
+      <div 
         className="glass"
         style={{ borderRadius: '16px', padding: '32px', border: '1px solid rgba(255, 255, 255, 0.1)' }}
         initial={{ opacity: 0, y: 20 }}
@@ -69,7 +69,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
           {statItems.map((item, index) => {
             const Icon = item.icon
             return (
-              <motion.div
+              <div
                 key={index}
                 className="glass"
                 style={{
@@ -100,14 +100,14 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
                       </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <motion.div
+                      <div
                         style={{ fontSize: '32px', fontWeight: 'bold', background: 'linear-gradient(135deg, white 0%, rgba(255, 255, 255, 0.8) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: index * 0.1 + 0.3, type: "spring", bounce: 0.4 }}
                       >
                         {item.value}
-                      </motion.div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -116,11 +116,11 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
                 <div style={{ position: 'absolute', top: '16px', right: '16px', opacity: 0.2 }}>
                   <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: `linear-gradient(135deg, ${item.color} 0%, ${item.color}80 100%)`, animation: 'pulse 2s infinite' }} />
                 </div>
-              </motion.div>
+              </div>
             )
           })}
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

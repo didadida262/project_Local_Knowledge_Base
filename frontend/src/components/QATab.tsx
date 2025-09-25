@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { MessageCircle, Send, FileText, TrendingUp } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+// import { motion, div } from 'framer-motion'
 import { askQuestion } from '../services/api'
 
 interface QAResult {
@@ -44,7 +44,7 @@ const QATab: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Question Form */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass"
@@ -109,12 +109,12 @@ const QATab: React.FC = () => {
             )}
           </motion.button>
         </form>
-      </motion.div>
+      </div>
 
       {/* Error Message */}
-      <AnimatePresence>
+      <div>
         {error && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -122,14 +122,14 @@ const QATab: React.FC = () => {
             style={{ borderRadius: '12px', padding: '16px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}
           >
             <p style={{ color: '#f87171' }}>{error}</p>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Answer */}
-      <AnimatePresence>
+      <div>
         {result && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -172,14 +172,14 @@ const QATab: React.FC = () => {
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* No Result */}
-      <AnimatePresence>
+      <div>
         {!result && !loading && question && (
-          <motion.div
+          <div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -190,9 +190,9 @@ const QATab: React.FC = () => {
               <h3 style={{ fontSize: '20px', fontWeight: '600', color: 'white', marginBottom: '8px' }}>等待回答...</h3>
               <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>AI正在分析您的问题</p>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   )
 }

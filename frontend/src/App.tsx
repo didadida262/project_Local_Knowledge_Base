@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Search, MessageCircle, FileText, BarChart3, Sparkles, Zap } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+// import { motion, AnimatePresence } from 'framer-motion'
 import StatsCard from './components/StatsCard'
 import SearchTab from './components/SearchTab'
 import QATab from './components/QATab'
@@ -81,17 +81,14 @@ function App() {
       </div>
 
       {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div 
         className="glass"
         style={{ position: 'relative', zIndex: 10, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
       >
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '80px' }}>
-            <motion.div 
+            <div 
               style={{ display: 'flex', alignItems: 'center', gap: '16px' }}
-              whileHover={{ scale: 1.05 }}
             >
               <div style={{ position: 'relative' }}>
                 <BarChart3 size={40} color="#22d3ee" style={{ filter: 'drop-shadow(0 0 10px #22d3ee)' }} />
@@ -103,15 +100,13 @@ function App() {
                 </h1>
                 <p style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)' }}>AI驱动的智能文档检索系统</p>
               </div>
-            </motion.div>
+            </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
               {stats && (
-                <motion.div 
+                <div 
                   className="glass"
                   style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.6)', padding: '8px 16px', borderRadius: '8px' }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Zap size={16} color="#fbbf24" />
@@ -119,25 +114,19 @@ function App() {
                     <span style={{ color: 'rgba(255, 255, 255, 0.5)' }}>|</span>
                     <span>文档: {stats.unique_files}</span>
                   </div>
-                </motion.div>
+                </div>
               )}
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Stats Card */}
-      <AnimatePresence>
-        {stats && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
-            <StatsCard stats={stats} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {stats && (
+        <div>
+          <StatsCard stats={stats} />
+        </div>
+      )}
 
       {/* Tabs */}
       <div style={{ position: 'relative', zIndex: 10, maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
@@ -147,7 +136,7 @@ function App() {
               const Icon = tab.icon
               const isActive = activeTab === tab.id
               return (
-                <motion.button
+                <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   style={{
@@ -160,43 +149,27 @@ function App() {
                     fontSize: '14px',
                     transition: 'all 0.3s',
                     color: isActive ? 'white' : 'rgba(255, 255, 255, 0.6)',
-                    background: isActive ? `linear-gradient(135deg, ${tab.color.split(' ')[1]} 0%, ${tab.color.split(' ')[3]} 100%)` : 'transparent'
+                    background: isActive ? `linear-gradient(135deg, ${tab.color.split(' ')[1]} 0%, ${tab.color.split(' ')[3]} 100%)` : 'transparent',
+                    border: 'none',
+                    cursor: 'pointer'
                   }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
                 >
                   <Icon size={20} style={{ marginRight: '12px' }} />
                   <span>{tab.label}</span>
-                </motion.button>
+                </button>
               )
             })}
           </nav>
         </div>
 
         {/* Tab Content */}
-        <motion.div 
-          style={{ marginTop: '32px' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {activeTab === 'search' && <SearchTab />}
-              {activeTab === 'qa' && <QATab />}
-              {activeTab === 'documents' && <DocumentsTab onUpload={loadStats} />}
-            </motion.div>
-          </AnimatePresence>
-        </motion.div>
+        <div style={{ marginTop: '32px' }}>
+          <div>
+            {activeTab === 'search' && <SearchTab />}
+            {activeTab === 'qa' && <QATab />}
+            {activeTab === 'documents' && <DocumentsTab onUpload={loadStats} />}
+          </div>
+        </div>
       </div>
     </div>
   )

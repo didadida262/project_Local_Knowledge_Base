@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Upload, FileText, Plus, Trash2, CheckCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+// import { motion, div } from 'framer-motion'
 import { getDocuments, uploadDocument, addDocument } from '../services/api'
 
 interface Document {
@@ -96,7 +96,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ onUpload }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Add Document Form */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass"
@@ -145,10 +145,10 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ onUpload }) => {
             )}
           </motion.button>
         </form>
-      </motion.div>
+      </div>
 
       {/* Upload Documents */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass"
@@ -190,12 +190,12 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ onUpload }) => {
           )}
           {uploading ? '上传中...' : '选择文件'}
         </label>
-      </motion.div>
+      </div>
 
       {/* Message */}
-      <AnimatePresence>
+      <div>
         {message && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -211,12 +211,12 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ onUpload }) => {
               {message.type === 'success' ? <CheckCircle size={16} /> : <Trash2 size={16} />}
               {message.text}
             </p>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Documents List */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass"
@@ -240,7 +240,7 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ onUpload }) => {
         ) : (
           <div style={{ display: 'grid', gap: '12px' }}>
             {documents.map((doc, index) => (
-              <motion.div
+              <div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -267,11 +267,11 @@ const DocumentsTab: React.FC<DocumentsTabProps> = ({ onUpload }) => {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   )
 }

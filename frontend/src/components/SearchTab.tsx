@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Search, FileText, TrendingUp, Sparkles, Zap, Filter } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+// import { motion, div } from 'framer-motion'
 import { searchDocuments } from '../services/api'
 
 interface SearchResult {
@@ -46,7 +46,7 @@ const SearchTab: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
       {/* Search Form */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="glass"
@@ -113,12 +113,12 @@ const SearchTab: React.FC = () => {
             )}
           </motion.button>
         </form>
-      </motion.div>
+      </div>
 
       {/* Error Message */}
-      <AnimatePresence>
+      <div>
         {error && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -129,14 +129,14 @@ const SearchTab: React.FC = () => {
               <Filter size={16} />
               {error}
             </p>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Search Results */}
-      <AnimatePresence>
+      <div>
         {results.length > 0 && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -155,7 +155,7 @@ const SearchTab: React.FC = () => {
             
             <div style={{ display: 'grid', gap: '16px' }}>
               {results.map((result, index) => (
-                <motion.div
+                <div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -210,17 +210,17 @@ const SearchTab: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* No Results */}
-      <AnimatePresence>
+      <div>
         {results.length === 0 && !loading && query && (
-          <motion.div
+          <div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -231,9 +231,9 @@ const SearchTab: React.FC = () => {
               <h3 style={{ fontSize: '20px', fontWeight: '600', color: 'white', marginBottom: '8px' }}>未找到相关文档</h3>
               <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>尝试使用不同的关键词或检查文档是否已添加到知识库</p>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   )
 }
