@@ -5,6 +5,7 @@ import StatsCard from './components/StatsCard'
 import SearchTab from './components/SearchTab'
 import QATab from './components/QATab'
 import DocumentsTab from './components/DocumentsTab'
+import LoadingScreen from './components/LoadingScreen'
 import { getStats } from './services/api'
 
 interface Stats {
@@ -17,21 +18,45 @@ function App() {
   const [activeTab, setActiveTab] = useState<'search' | 'qa' | 'documents'>('search')
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadingMessage, setLoadingMessage] = useState('正在连接服务器...')
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     // 强制暗黑模式
     document.documentElement.classList.add('dark')
-    loadStats()
+    loadStatsWithRetry()
   }, [])
 
-  const loadStats = async () => {
-    try {
-      const data = await getStats()
-      setStats(data)
-    } catch (error) {
-      console.error('Failed to load stats:', error)
-    } finally {
-      setLoading(false)
+  const loadStatsWithRetry = async () => {
+    const maxRetries = 10
+    let currentRetry = 0
+    
+    while (currentRetry < maxRetries) {
+      try {
+        setLoadingMessage('正在连接服务器...')
+        setLoadingProgress(10)
+        
+        const data = await getStats()
+        setStats(data)
+        setLoading(false)
+        return
+      } catch (error: any) {
+        currentRetry++
+        setRetryCount(currentRetry)
+        
+        if (currentRetry < maxRetries) {
+          setLoadingMessage(`服务器启动中... (${currentRetry}/${maxRetries})`)
+          setLoadingProgress(Math.min(20 + currentRetry * 8, 90))
+          
+          // 等待一段时间后重试
+          await new Promise(resolve => setTimeout(resolve, 2000))
+        } else {
+          setLoadingMessage('连接失败，请检查服务器状态')
+          setLoadingProgress(100)
+          console.error('Failed to load stats after retries:', error)
+        }
+      }
     }
   }
 
@@ -40,6 +65,16 @@ function App() {
     { id: 'qa', label: 'AI问答', icon: MessageCircle, gradient: 'from-purple-500 to-pink-500' },
     { id: 'documents', label: '文档管理', icon: FileText, gradient: 'from-green-500 to-emerald-500' },
   ] as const
+
+  // 显示加载屏幕
+  if (loading) {
+    return (
+      <LoadingScreen 
+        message={loadingMessage}
+        progress={loadingProgress}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">

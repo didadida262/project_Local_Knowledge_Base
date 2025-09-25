@@ -42,6 +42,7 @@ class VectorKnowledgeBase:
         # 初始化重排模型
         if self.use_reranker:
             try:
+                print("🔄 正在加载重排模型，这可能需要几分钟...")
                 self.reranker = Reranker()
                 print("✅ 重排模型加载成功")
             except Exception as e:

@@ -5,6 +5,31 @@ const api = axios.create({
   timeout: 30000,
 })
 
+// 添加请求拦截器，显示loading状态
+api.interceptors.request.use(
+  (config) => {
+    // 可以在这里添加loading状态管理
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 添加响应拦截器，处理连接错误
+api.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    if (error.code === 'ECONNREFUSED' || error.message.includes('ECONNREFUSED')) {
+      // 连接被拒绝，可能是服务器还在启动
+      throw new Error('服务器正在启动中，请稍候...')
+    }
+    return Promise.reject(error)
+  }
+)
+
 // 获取知识库统计信息
 export const getStats = async () => {
   const response = await api.get('/stats')

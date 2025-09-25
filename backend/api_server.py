@@ -274,6 +274,8 @@ def run_server(port=5000):
     print("   POST /api/add_document - 添加文档")
     print("   POST /api/rebuild - 重建知识库")
     print("=" * 60)
+    print("⏳ 正在初始化模型，请稍候...")
+    print("✅ 服务器已就绪，可以接受连接")
     print("按 Ctrl+C 停止服务器")
     print("=" * 60)
     

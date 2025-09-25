@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
-title 本地向量知识库启动器
+title 本地向量知识库启动器 (简化版)
 
 echo.
 echo ========================================
-echo 🚀 本地向量知识库启动器
+echo 🚀 本地向量知识库启动器 (简化版)
 echo ========================================
 echo.
 
@@ -26,7 +26,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM 检查依赖是否安装
 echo 🔍 检查Python依赖...
 python -c "import sentence_transformers, faiss, PyPDF2, docx, bs4, jieba" >nul 2>&1
 if errorlevel 1 (
@@ -67,11 +66,9 @@ if "%choice%"=="1" (
         cd ..
     )
     
-    echo 🚀 启动后端API服务器...
-    echo ⏳ 正在加载AI模型，这可能需要几分钟...
-    start "后端API" cmd /k "python backend/api_server.py"
-    echo ⏳ 等待服务器完全启动...
-    timeout /t 10 /nobreak >nul
+    echo 🚀 启动后端API服务器 (简化模式，无重排模型)...
+    start "后端API" cmd /k "python -c \"import sys; sys.path.append('.'); from backend.vector_knowledge_base import VectorKnowledgeBase; from backend.api_server import run_server; kb = VectorKnowledgeBase(use_reranker=False); run_server()\""
+    timeout /t 5 /nobreak >nul
     
     echo 🌐 启动前端开发服务器...
     start "前端界面" cmd /k "cd frontend && npm run dev"
@@ -86,7 +83,7 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="2" (
     echo.
     echo 🔨 构建知识库...
-    python -c "from backend.vector_knowledge_base import VectorKnowledgeBase; from pathlib import Path; kb = VectorKnowledgeBase(); kb.clear_knowledge_base(); kb.add_directory('docs'); kb.save_knowledge_base(); print('✅ 知识库构建完成')"
+    python -c "import sys; sys.path.append('.'); from backend.vector_knowledge_base import VectorKnowledgeBase; kb = VectorKnowledgeBase(use_reranker=False); kb.clear_knowledge_base(); kb.add_directory('docs'); kb.save_knowledge_base(); print('✅ 知识库构建完成')"
     echo.
     echo 按任意键退出...
     pause >nul
@@ -94,8 +91,8 @@ if "%choice%"=="1" (
 ) else if "%choice%"=="3" (
     :api_only
     echo.
-    echo 🚀 启动API服务器...
-    python backend/api_server.py
+    echo 🚀 启动API服务器 (简化模式)...
+    python -c "import sys; sys.path.append('.'); from backend.vector_knowledge_base import VectorKnowledgeBase; from backend.api_server import run_server; kb = VectorKnowledgeBase(use_reranker=False); run_server()"
     
 ) else (
     echo.
