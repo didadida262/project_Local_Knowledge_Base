@@ -9,7 +9,7 @@ import requests
 import json
 import time
 from typing import List, Dict, Any
-from .vector_knowledge_base import VectorKnowledgeBase
+from vector_knowledge_base import VectorKnowledgeBase
 
 
 class KnowledgeRetriever:

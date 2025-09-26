@@ -29,7 +29,7 @@ function App() {
   }, [])
 
   const loadStatsWithRetry = async () => {
-    const maxRetries = 10
+    const maxRetries = 30  // 增加重试次数，因为模型加载需要时间
     let currentRetry = 0
     
     while (currentRetry < maxRetries) {
@@ -46,11 +46,16 @@ function App() {
         setRetryCount(currentRetry)
         
         if (currentRetry < maxRetries) {
-          setLoadingMessage(`服务器启动中... (${currentRetry}/${maxRetries})`)
-          setLoadingProgress(Math.min(20 + currentRetry * 8, 90))
+          if (currentRetry < 10) {
+            setLoadingMessage(`等待AI模型加载中... (${currentRetry}/${maxRetries})`)
+            setLoadingProgress(Math.min(10 + currentRetry * 3, 70))
+          } else {
+            setLoadingMessage(`模型初始化中... (${currentRetry}/${maxRetries})`)
+            setLoadingProgress(Math.min(70 + (currentRetry - 10) * 1, 95))
+          }
           
           // 等待一段时间后重试
-          await new Promise(resolve => setTimeout(resolve, 2000))
+          await new Promise(resolve => setTimeout(resolve, 3000))
         } else {
           setLoadingMessage('连接失败，请检查服务器状态')
           setLoadingProgress(100)

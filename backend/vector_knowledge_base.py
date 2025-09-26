@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from sentence_transformers import SentenceTransformer
 import faiss
-from .document_processor import DocumentProcessor
+from document_processor import DocumentProcessor
 
 
 class VectorKnowledgeBase:

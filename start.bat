@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal
 
 :: 设置Python路径
@@ -63,33 +64,53 @@ if not exist "frontend\node_modules" (
 :: 清理可能存在的旧进程
 echo 🧹 清理旧进程...
 taskkill /f /im python.exe >nul 2>&1
-taskkill /f /im node.exe >nul 2>&1
+taskkill /f /im node.exe >nul 2>&1 >nul
 
 :: 等待端口释放
 echo ⏳ 等待端口释放...
-timeout /t 3 /nobreak >nul
+ping -n 3 127.0.0.1 >nul
 
 :: 启动后端API服务器
 echo 🚀 启动后端API服务器...
-echo ⏳ 正在加载AI模型，这可能需要几分钟...
-start "后端API" cmd /k "python backend/api_server.py"
-echo ⏳ 等待服务器完全启动...
-timeout /t 10 /nobreak >nul
+echo ⏳ 正在初始化AI模型，这可能需要几分钟...
+echo 📝 请持续关注后端窗口中的加载进度
+echo.
+start "后端API" cmd /k "cd backend && python api_server.py"
+
+:: 等待后端启动完成
+echo.
+echo 📝 等待AI模型完全初始化...
+echo 📝 自动检测后端状态中...
+:wait_backend
+ping -n 3 127.0.0.1 >nul
+%PYTHON_EXE% -c "import requests; response = requests.get('http://127.0.0.1:5000/api/health'); print('健康检查:', response.json())" >nul 2>nul
+if %errorlevel% neq 0 (
+    echo 📝 等待后端启动中，请稍候...
+    goto wait_backend
+)
+echo ✅ 后端连接正常
 
 :: 启动前端开发服务器
 echo 🌐 启动前端开发服务器...
-start "前端界面" cmd /k "cd frontend && npm run dev"
+echo ⏳ 正在启动React前端应用...
+start "前端界面" cmd /k "echo 🚀 启动React开发服务器... && cd frontend && npm run dev"
+
+:: 等待前端启动
+echo ⏳ 等待前端服务器启动...
+ping -n 5 127.0.0.1 >nul
 
 echo ============================================================
-echo ✅ 本地向量知识库已启动
+echo ✅ 本地向量知识库已启动 (完整版)
 echo ============================================================
-echo 前端地址: http://localhost:3000
-echo 后端API:  http://127.0.0.1:5000
+echo 🌐 前端地址: http://localhost:3000
+echo 🔧 后端API:  http://127.0.0.1:5000
 echo.
-echo 请在浏览器中打开前端地址。
+echo 📝 前端和后端都已启动，请在浏览器中打开前端地址
+echo 📝 关闭两个服务窗口即可停止系统
 echo.
-echo 按任意键退出...
+echo 按任意键激活浏览器并打开前端地址...
 pause >nul
+start http://localhost:3000
 
 :: 停止所有进程
 echo 🛑 正在停止所有服务...

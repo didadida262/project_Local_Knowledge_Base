@@ -183,10 +183,10 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
           className="mt-8 text-center"
         >
           <p className="text-white/60 text-sm">
-            首次启动可能需要几分钟来下载和加载AI模型
+            正在初始化AI模型，这可能需要几分钟时间
           </p>
           <p className="text-white/40 text-xs mt-2">
-            请耐心等待，完成后将自动进入系统
+            模型完全加载后才会进入系统，请耐心等待
           </p>
         </motion.div>
       </div>
