@@ -61,32 +61,40 @@ fi
 echo "🔍 检查AI模型..."
 echo ""
 
-# 检查 SentenceTransformer 模型
+# 检查 SentenceTransformer 模型（快速检查，不实际加载模型）
 echo "📦 检查 SentenceTransformer 模型 (all-MiniLM-L6-v2)..."
 MODEL_CHECK=$($PYTHON_EXE -c "
 import sys
 import os
+# 只检查模块是否可导入，不实际加载模型（避免卡住）
 try:
-    from sentence_transformers import SentenceTransformer
-    model_name = 'all-MiniLM-L6-v2'
+    import sentence_transformers
+    print('✅ sentence_transformers 已安装')
+    # 检查缓存目录是否存在模型文件
     cache_dir = os.path.expanduser('~/.cache/huggingface/hub')
-    
-    # 检查模型缓存目录
-    model_path = os.path.join(cache_dir, 'models--sentence-transformers--all-MiniLM-L6-v2')
-    if os.path.exists(model_path):
-        print('✅ SentenceTransformer 模型已下载')
-        sys.exit(0)
+    if os.path.exists(cache_dir):
+        try:
+            items = os.listdir(cache_dir)
+            if any('MiniLM' in item for item in items):
+                print('✅ 模型文件已存在')
+            else:
+                print('⚠️  模型文件未找到，首次运行时会自动下载')
+        except:
+            print('⚠️  无法检查模型文件，启动时会自动处理')
     else:
-        print('⚠️  SentenceTransformer 模型未找到')
-        print('📝 首次运行时会自动下载模型，这可能需要几分钟时间')
-        print(f'📝 模型将下载到: {cache_dir}')
-        sys.exit(2)
+        print('⚠️  模型缓存目录不存在，首次运行时会自动创建并下载模型')
+    sys.exit(0)
 except ImportError:
     print('❌ sentence_transformers 未安装')
     sys.exit(1)
 except Exception as e:
-    print(f'❌ 模型检查失败: {e}')
-    sys.exit(1)
+    error_msg = str(e)
+    if 'cached_download' in error_msg or 'huggingface_hub' in error_msg:
+        print('⚠️  版本可能不兼容，建议运行: pip install --upgrade sentence-transformers')
+        print('   但将继续启动，系统会尝试自动处理')
+    else:
+        print(f'⚠️  检查时出现警告: {error_msg[:80]}')
+    sys.exit(0)
 " 2>&1)
 
 MODEL_STATUS=$?
@@ -94,11 +102,9 @@ echo "$MODEL_CHECK"
 
 if [ $MODEL_STATUS -eq 1 ]; then
     echo ""
-    echo "❌ SentenceTransformer 模型检查失败，请确保已安装依赖"
+    echo "❌ sentence_transformers 未安装"
+    echo "📝 请运行: pip3 install -r requirements.txt"
     exit 1
-elif [ $MODEL_STATUS -eq 2 ]; then
-    echo ""
-    echo "⚠️  提示: 首次运行时会自动下载模型，请耐心等待"
 fi
 
 echo ""
@@ -204,14 +210,48 @@ cd ..
 echo ""
 echo "📝 等待AI模型完全初始化..."
 echo "📝 自动检测后端状态中..."
-while true; do
+MAX_WAIT_TIME=300  # 最大等待5分钟
+WAIT_COUNT=0
+while [ $WAIT_COUNT -lt $MAX_WAIT_TIME ]; do
     sleep 3
-    if $PYTHON_EXE -c "import requests; response = requests.get('http://127.0.0.1:5000/api/health'); print('健康检查:', response.json())" &> /dev/null; then
+    WAIT_COUNT=$((WAIT_COUNT + 3))
+    # 检查后端健康状态，忽略警告信息
+    if $PYTHON_EXE -c "
+import sys
+import warnings
+warnings.filterwarnings('ignore')
+try:
+    import requests
+    response = requests.get('http://127.0.0.1:5000/api/health', timeout=2)
+    if response.status_code == 200:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+except:
+    sys.exit(1)
+" 2>/dev/null; then
+        echo "✅ 后端连接正常"
         break
     fi
-    echo "📝 等待后端启动中，请稍候..."
+    if [ $((WAIT_COUNT % 30)) -eq 0 ]; then
+        echo "📝 已等待 ${WAIT_COUNT} 秒，继续等待后端启动中..."
+    fi
+    # 检查后端进程是否还在运行
+    if ! ps -p $BACKEND_PID > /dev/null 2>&1; then
+        echo ""
+        echo "❌ 后端进程已停止"
+        echo "📝 查看错误日志:"
+        tail -20 backend.log 2>/dev/null || echo "   无法读取日志文件"
+        exit 1
+    fi
 done
-echo "✅ 后端连接正常"
+
+if [ $WAIT_COUNT -ge $MAX_WAIT_TIME ]; then
+    echo ""
+    echo "⚠️  后端启动超时（已等待 ${MAX_WAIT_TIME} 秒）"
+    echo "📝 查看后端日志: tail -f backend.log"
+    echo "📝 但将继续启动前端，你可以稍后检查后端状态"
+fi
 
 # 启动前端开发服务器
 echo "🌐 启动前端开发服务器..."

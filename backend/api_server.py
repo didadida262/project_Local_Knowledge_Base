@@ -281,7 +281,9 @@ class APIHandler(BaseHTTPRequestHandler):
             APIHandler._kb.clear_knowledge_base()
             
             # 重新加载docs目录
-            docs_dir = Path("../docs")
+            # 获取项目根目录（backend的父目录）
+            project_root = Path(__file__).parent.parent
+            docs_dir = project_root / "docs"
             if docs_dir.exists():
                 results = APIHandler._kb.add_directory(str(docs_dir))
                 
@@ -337,7 +339,9 @@ def run_server(port=5000):
         
         # 如果知识库是空的，尝试加载docs目录
         if kb_stats_before.get('total_documents', 0) == 0:
-            docs_dir = Path("../docs")  # 从backend目录向上，然后进入docs
+            # 获取项目根目录（backend的父目录）
+            project_root = Path(__file__).parent.parent
+            docs_dir = project_root / "docs"
             print(f"📝 知识库为空，检查并加载docs目录: {docs_dir.absolute()}")
             
             if docs_dir.exists():

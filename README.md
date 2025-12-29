@@ -260,15 +260,61 @@ Content-Type: application/json
 
 ## 问题解决
 
+### 启动脚本卡住
+
+**如果脚本在模型检查时卡住：**
+1. 按 `Ctrl+C` 中断脚本
+2. 检查依赖是否安装：`pip3 list | grep sentence-transformers`
+3. 如果未安装，运行：`pip3 install -r requirements.txt`
+4. 如果版本不兼容，运行：`pip3 install --upgrade sentence-transformers`
+5. 重新运行启动脚本
+
+**如果后端启动超时：**
+1. 查看后端日志：`tail -f backend.log`
+2. 检查是否有错误信息
+3. 首次启动时，模型下载可能需要几分钟，请耐心等待
+4. 如果持续失败，检查Python版本和依赖安装
+
+### 连接错误
+
 **如果遇到 `ECONNREFUSED` 错误：**
-1. 检查端口5000是否被占用：`netstat -ano | findstr :5000`
-2. 重启所有服务：`taskkill /f /im python.exe`
-3. 等待AI模型加载完成（首次启动可能需要几分钟）
+1. macOS/Linux: 检查端口5000是否被占用：`lsof -ti:5000`
+2. Windows: 检查端口5000是否被占用：`netstat -ano | findstr :5000`
+3. 清理旧进程：
+   - macOS/Linux: `pkill -f "python.*api_server.py"`
+   - Windows: `taskkill /f /im python.exe`
+4. 等待AI模型加载完成（首次启动可能需要几分钟）
+
+### 知识库问题
 
 **如果知识库统计显示0：**
 1. 确保docs目录中有文档文件
 2. 重启系统让系统重新扫描docs目录
-3. 检查文件格式是否支持
+3. 检查文件格式是否支持（.txt, .md, .pdf, .docx, .html）
+4. 删除 `backend/knowledge_base/` 目录，重新启动系统
+
+### 依赖问题
+
+**如果提示依赖未安装：**
+```bash
+# 安装所有Python依赖
+pip3 install -r requirements.txt
+
+# 如果遇到版本冲突，升级sentence-transformers
+pip3 install --upgrade sentence-transformers
+
+# 安装前端依赖
+cd frontend
+npm install
+```
+
+### Ollama问题
+
+**如果AI问答功能不可用：**
+1. 检查Ollama是否运行：`ollama list`
+2. 如果没有安装，访问 https://ollama.ai 下载安装
+3. 安装模型：`ollama pull gemma2:2b`
+4. 注意：即使没有Ollama，搜索功能仍然可用
 
 ## 📝 更新日志
 
