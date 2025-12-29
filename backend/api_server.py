@@ -370,7 +370,58 @@ def run_server(port=5000):
         # 测试检索器功能
         if retriever is None:
             raise Exception("检索器对象为空")
+        
+        # 检查Ollama连接和模型
+        print("🔍 检查Ollama服务和模型...")
         ollama_status = retriever.check_ollama_connection()
+        if not ollama_status:
+            print("=" * 60)
+            print("❌ 错误: 无法连接到Ollama服务")
+            print("=" * 60)
+            print("请确保Ollama服务正在运行:")
+            print("  1. 检查Ollama是否安装: ollama --version")
+            print("  2. 启动Ollama服务: ollama serve")
+            print("  3. 或访问 https://ollama.ai 下载安装Ollama")
+            print("=" * 60)
+            print("⚠️  注意: 即使没有Ollama，搜索功能仍然可以正常使用")
+            print("⚠️  但AI问答功能将不可用")
+            print("=" * 60)
+        else:
+            # 检查模型是否存在
+            available_models = retriever.get_ollama_models()
+            required_model = "gemma2:2b"
+            
+            if not available_models:
+                print("=" * 60)
+                print("❌ 错误: Ollama服务运行正常，但未安装任何模型")
+                print("=" * 60)
+                print(f"请安装所需的模型: {required_model}")
+                print(f"运行命令: ollama pull {required_model}")
+                print("=" * 60)
+                raise Exception(f"Ollama模型 {required_model} 未安装")
+            
+            # 检查是否有所需模型（支持完整匹配或部分匹配）
+            model_found = False
+            matching_models = []
+            for model in available_models:
+                if required_model.lower() in model.lower() or "gemma2" in model.lower():
+                    model_found = True
+                    matching_models.append(model)
+            
+            if not model_found:
+                print("=" * 60)
+                print(f"❌ 错误: 未找到所需的Ollama模型: {required_model}")
+                print("=" * 60)
+                print(f"已安装的模型: {', '.join(available_models) if available_models else '无'}")
+                print("")
+                print("解决方案:")
+                print(f"  1. 安装模型: ollama pull {required_model}")
+                print("  2. 或使用其他已安装的模型（需要修改代码）")
+                print("=" * 60)
+                raise Exception(f"Ollama模型 {required_model} 未安装，已安装的模型: {', '.join(available_models)}")
+            else:
+                print(f"✅ 找到模型: {', '.join(matching_models)}")
+        
         print(f"🔗 Ollama连接状态: {'连接正常' if ollama_status else '连接失败'}")
         
         # 将初始化的实例设置为APIHandler的类属性

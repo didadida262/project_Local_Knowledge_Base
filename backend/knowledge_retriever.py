@@ -15,7 +15,7 @@ from vector_knowledge_base import VectorKnowledgeBase
 class KnowledgeRetriever:
     """知识检索器类"""
     
-    def __init__(self, knowledge_base: VectorKnowledgeBase, ollama_url: str = "http://localhost:11434", ollama_model: str = "gemma3:4b"):
+    def __init__(self, knowledge_base: VectorKnowledgeBase, ollama_url: str = "http://localhost:11434", ollama_model: str = "gemma2:2b"):
         """
         初始化知识检索器
         
@@ -127,12 +127,29 @@ class KnowledgeRetriever:
                     print("✅ Ollama调用成功")
                     return result.get('response', '抱歉，无法生成答案。')
                 else:
+                    error_text = response.text
                     print(f"⚠️ Ollama返回错误: {response.status_code}")
+                    
+                    # 检查是否是模型不存在的错误
+                    if "model" in error_text.lower() and ("not found" in error_text.lower() or "does not exist" in error_text.lower()):
+                        error_msg = f"""
+❌ 错误: Ollama模型 '{self.ollama_model}' 未找到或未下载
+
+解决方案:
+1. 检查模型是否已安装: ollama list
+2. 如果未安装，运行: ollama pull {self.ollama_model}
+3. 安装完成后重新启动服务
+
+当前请求的模型: {self.ollama_model}
+"""
+                        print(error_msg)
+                        return f"错误: 模型 {self.ollama_model} 未安装，请运行 'ollama pull {self.ollama_model}' 安装模型"
+                    
                     if attempt < max_retries - 1:
                         print(f"🔄 等待2秒后重试...")
                         time.sleep(2)
                         continue
-                    return f"Ollama服务错误: {response.status_code} - {response.text}"
+                    return f"Ollama服务错误: {response.status_code} - {error_text}"
                     
             except requests.exceptions.ConnectionError as e:
                 print(f"❌ 连接错误: {e}")
@@ -140,6 +157,18 @@ class KnowledgeRetriever:
                     print(f"🔄 等待3秒后重试...")
                     time.sleep(3)
                     continue
+                error_msg = """
+❌ 错误: 无法连接到Ollama服务
+
+解决方案:
+1. 检查Ollama服务是否运行: ollama list
+2. 如果未运行，启动Ollama: ollama serve
+3. 确保Ollama服务地址正确: http://localhost:11434
+4. 如果未安装Ollama，访问 https://ollama.ai 下载安装
+
+注意: 即使没有Ollama，搜索功能仍然可以正常使用
+"""
+                print(error_msg)
                 return "无法连接到Ollama服务，请确保Ollama正在运行。"
             except requests.exceptions.Timeout as e:
                 print(f"⏰ 超时错误: {e}")
