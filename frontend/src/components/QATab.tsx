@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { MessageCircle, Send, FileText, TrendingUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { askQuestion } from '../services/api'
@@ -16,16 +16,33 @@ interface QAResult {
   confidence: number
 }
 
-const QATab: React.FC = () => {
+interface QATabProps {
+  resetKey?: number // 当这个key变化时，清空内容
+}
+
+const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
   const [question, setQuestion] = useState('')
   const [result, setResult] = useState<QAResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasSubmitted, setHasSubmitted] = useState(false) // 是否已提交问题
+
+  // 当 resetKey 变化时，清空所有内容
+  useEffect(() => {
+    if (resetKey > 0) {
+      setQuestion('')
+      setResult(null)
+      setError(null)
+      setLoading(false)
+      setHasSubmitted(false)
+    }
+  }, [resetKey])
 
   const handleAsk = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim()) return
 
+    setHasSubmitted(true) // 标记已提交
     setLoading(true)
     setError(null)
 
@@ -173,9 +190,9 @@ const QATab: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* No Result */}
+      {/* No Result - 只在已提交且不在加载中时显示 */}
       <AnimatePresence>
-        {!result && !loading && question && (
+        {!result && !loading && hasSubmitted && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

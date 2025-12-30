@@ -22,6 +22,36 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
+    // 如果是 HTTP 错误响应，尝试解析错误信息
+    if (error.response) {
+      const status = error.response.status
+      const data = error.response.data
+      
+      // 如果后端返回了错误信息，保留它
+      if (data && typeof data === 'object') {
+        return Promise.reject({
+          ...error,
+          message: data.error || data.message || error.message,
+          response: error.response
+        })
+      }
+      
+      // 对于 4xx 和 5xx 错误，返回更友好的错误信息
+      if (status >= 400 && status < 500) {
+        return Promise.reject({
+          ...error,
+          message: data?.error || data?.message || `请求错误 (${status})`
+        })
+      }
+      
+      if (status >= 500) {
+        return Promise.reject({
+          ...error,
+          message: data?.error || data?.message || `服务器错误 (${status})`
+        })
+      }
+    }
+    
     if (error.code === 'ECONNREFUSED' || error.message.includes('ECONNREFUSED')) {
       // 连接被拒绝，可能是服务器还在启动
       console.warn('🔄 服务器连接被拒绝，可能是服务器正在启动...')
@@ -66,12 +96,13 @@ export const getDocuments = async () => {
   return response.data
 }
 
-// 上传文档
+// 上传文档（单个文件）
 export const uploadDocument = async (formData: FormData) => {
   const response = await api.post('/upload_document', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    timeout: 300000, // 5分钟超时，处理大文件
   })
   return response.data
 }

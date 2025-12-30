@@ -23,6 +23,7 @@ function App() {
   const [loadingMessage, setLoadingMessage] = useState('正在连接服务器...')
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [retryCount, setRetryCount] = useState(0)
+  const [qaResetKey, setQaResetKey] = useState(0) // 用于重置问答内容
 
   useEffect(() => {
     // 强制暗黑模式
@@ -204,7 +205,7 @@ function App() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="lg:col-span-3 space-y-4 overflow-y-auto"
+              className="lg:col-span-3 space-y-3 overflow-y-auto pr-1"
             >
               {/* 知识库统计 */}
               <motion.div
@@ -216,7 +217,13 @@ function App() {
               </motion.div>
 
               {/* 文件上传面板 */}
-              <FileUploadPanel onUploadSuccess={loadStatsWithRetry} />
+              <FileUploadPanel 
+                onUploadSuccess={loadStatsWithRetry}
+                onResetSuccess={() => {
+                  loadStatsWithRetry()
+                  setQaResetKey(prev => prev + 1) // 触发问答内容重置
+                }}
+              />
             </motion.div>
 
             {/* 右侧问答区域 */}
@@ -226,7 +233,7 @@ function App() {
               transition={{ delay: 0.5 }}
               className="lg:col-span-9 h-full overflow-y-auto pr-2 qa-scroll-container"
             >
-              <QATab />
+              <QATab resetKey={qaResetKey} />
             </motion.div>
             </div>
           </div>

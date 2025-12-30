@@ -40,32 +40,32 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
   return (
     <div className="w-full">
       <motion.div 
-        className="relative p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
+        className="relative p-3 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
         {/* 背景装饰 */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
         
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-2 mb-3">
             <motion.div
-              className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center"
+              className="w-7 h-7 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center"
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             >
-              <TrendingUp size={18} className="text-white" />
+              <TrendingUp size={14} className="text-white" />
             </motion.div>
             <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h2 className="text-sm font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 知识库统计
               </h2>
-              <p className="text-white/60 text-xs">实时数据概览</p>
+              <p className="text-white/60 text-[10px]">实时数据概览</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-2">
             {statItems.map((item, index) => {
               const Icon = item.icon
               return (
@@ -77,33 +77,33 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.05, y: -5 }}
                 >
-                  <div className="relative p-4 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 overflow-hidden">
+                  <div className="relative p-2.5 rounded-lg bg-white/5 backdrop-blur-xl border border-white/10 overflow-hidden">
                     {/* 背景渐变 */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${item.bgGradient} opacity-50`} />
                     
                     {/* 内容 */}
                     <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-1.5">
                           <motion.div 
-                            className={`w-8 h-8 rounded-lg bg-gradient-to-r ${item.gradient} flex items-center justify-center`}
+                            className={`w-6 h-6 rounded-md bg-gradient-to-r ${item.gradient} flex items-center justify-center`}
                             whileHover={{ rotate: 360 }}
                             transition={{ duration: 0.5 }}
                           >
-                            <Icon size={16} className="text-white" />
+                            <Icon size={12} className="text-white" />
                           </motion.div>
                           <div>
-                            <h3 className="text-xs font-medium text-white/80">{item.label}</h3>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-                              <span className="text-[10px] text-white/60">活跃状态</span>
+                            <h3 className="text-[10px] font-medium text-white/80">{item.label}</h3>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <div className="w-1 h-1 rounded-full bg-green-400 animate-pulse" />
+                              <span className="text-[9px] text-white/60">活跃状态</span>
                             </div>
                           </div>
                         </div>
                       </div>
                       
                       <motion.div
-                        className="text-2xl font-bold text-white"
+                        className="text-lg font-bold text-white"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: index * 0.1 + 0.3, type: "spring", bounce: 0.4 }}
@@ -114,7 +114,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
                     
                     {/* 装饰性光效 */}
                     <motion.div
-                      className={`absolute top-3 right-3 w-6 h-6 rounded-full bg-gradient-to-r ${item.gradient} opacity-20`}
+                      className={`absolute top-2 right-2 w-4 h-4 rounded-full bg-gradient-to-r ${item.gradient} opacity-20`}
                       animate={{ 
                         scale: [1, 1.2, 1],
                         opacity: [0.2, 0.4, 0.2]
