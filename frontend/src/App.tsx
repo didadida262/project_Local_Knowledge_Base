@@ -224,7 +224,7 @@ function App() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
-              className="lg:col-span-9 overflow-y-auto"
+              className="lg:col-span-9 h-full overflow-y-auto pr-2 qa-scroll-container"
             >
               <QATab />
             </motion.div>

@@ -27,9 +27,11 @@
 # 下载并安装Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# 拉取推理模型
-ollama pull gemma3:4b
+# 拉取推理模型（约1.5GB）
+ollama pull gemma2:2b
 ```
+
+**注意**: 模型会下载到 `~/.ollama/models/` 目录，不在项目目录中。
 
 ### 3. 一键启动
 

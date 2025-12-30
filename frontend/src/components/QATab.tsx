@@ -51,7 +51,7 @@ const QATab: React.FC = () => {
   }
 
   return (
-    <div className="h-full space-y-4">
+    <div className="space-y-4 pb-4">
       {/* Question Form */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
