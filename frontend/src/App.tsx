@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { Search, MessageCircle, FileText, BarChart3, Sparkles, Zap } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { BarChart3, Sparkles, Zap } from 'lucide-react'
 import StatsCard from './components/StatsCard'
 import QATab from './components/QATab'
 import FileUploadPanel from './components/FileUploadPanel'
@@ -22,7 +22,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [loadingMessage, setLoadingMessage] = useState('正在连接服务器...')
   const [loadingProgress, setLoadingProgress] = useState(0)
-  const [retryCount, setRetryCount] = useState(0)
+  const [, setRetryCount] = useState(0)
   const [qaResetKey, setQaResetKey] = useState(0) // 用于重置问答内容
 
   useEffect(() => {

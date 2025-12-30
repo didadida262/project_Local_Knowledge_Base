@@ -22,7 +22,7 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
   const [resetting, setResetting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
-  const [loadingDocuments, setLoadingDocuments] = useState(false)
+  const [, setLoadingDocuments] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // 加载文档列表
@@ -231,8 +231,7 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
           <input
             ref={fileInputRef}
             type="file"
-            webkitdirectory=""
-            directory=""
+            {...({ webkitdirectory: '', directory: '' } as any)}
             multiple
             onChange={handleFileSelect}
             disabled={uploading}
