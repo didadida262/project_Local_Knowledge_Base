@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: knowledge-base-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && python3 api_server.py
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: HF_HUB_DOWNLOAD_TIMEOUT
+        value: 300
+

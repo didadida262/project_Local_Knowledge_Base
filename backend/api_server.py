@@ -528,7 +528,9 @@ def run_server(port=5000):
         return
     
     print("🚀 正在启动HTTP服务器...")
-    server_address = ('127.0.0.1', port)
+    # 部署环境需要监听 0.0.0.0，本地开发使用 127.0.0.1
+    host = os.getenv('HOST', '127.0.0.1')
+    server_address = (host, port)
     httpd = HTTPServer(server_address, APIHandler)
     
     print("=" * 60)
@@ -544,4 +546,6 @@ def run_server(port=5000):
 
 
 if __name__ == '__main__':
-    run_server()
+    # 从环境变量读取端口，默认为 5000
+    port = int(os.getenv('PORT', '5000'))
+    run_server(port)
