@@ -218,7 +218,10 @@ function App() {
 
               {/* 文件上传面板 */}
               <FileUploadPanel 
-                onUploadSuccess={loadStatsWithRetry}
+                onUploadSuccess={() => {
+                  loadStatsWithRetry()
+                  setQaResetKey(prev => prev + 1) // 上传成功后也触发问答内容重置
+                }}
                 onResetSuccess={() => {
                   loadStatsWithRetry()
                   setQaResetKey(prev => prev + 1) // 触发问答内容重置

@@ -213,7 +213,7 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
         </div>
         <div>
           <h3 className="text-sm font-semibold text-white">选择本地文件</h3>
-          <p className="text-white/60 text-[10px]">上传文件构建知识库</p>
+          <p className="text-white/60 text-xs">上传文件构建知识库</p>
         </div>
       </div>
 
@@ -244,7 +244,7 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
             <div className="space-y-2">
               <Loader size={28} className="text-blue-400 mx-auto animate-spin" />
               <div>
-                <p className="text-white font-medium mb-1.5 text-xs">上传中...</p>
+                <p className="text-white font-medium mb-1.5 text-sm">上传中...</p>
                 <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
                   <motion.div
                     className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
@@ -253,19 +253,19 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
                     transition={{ duration: 0.3 }}
                   />
                 </div>
-                <p className="text-white/60 text-[10px] mt-1.5">{uploadProgress.toFixed(0)}%</p>
+                <p className="text-white/60 text-xs mt-1.5">{uploadProgress.toFixed(0)}%</p>
               </div>
             </div>
           ) : (
             <>
               <Upload size={28} className="text-white/40 mx-auto mb-2" />
-              <p className="text-white/80 mb-1 font-medium text-xs">拖拽文件夹到此处或点击选择</p>
-              <p className="text-white/60 text-[10px] mb-2">
-                支持格式: TXT, MD, PDF, DOCX, HTML
-              </p>
+            <p className="text-white/80 mb-1 font-medium text-sm">拖拽文件夹到此处或点击选择</p>
+            <p className="text-white/60 text-xs mb-2">
+              支持格式: TXT, MD, PDF, DOCX, HTML
+            </p>
               <label
                 htmlFor="file-upload-input"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-medium cursor-pointer hover:scale-105 transition-transform"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium cursor-pointer hover:scale-105 transition-transform"
               >
                 <FileText size={12} />
                 选择文件
@@ -280,7 +280,7 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-1.5">
             <CheckCircle size={12} className="text-green-400" />
-            <p className="text-xs font-medium text-white/80">已上传文件 ({documents.length})</p>
+            <p className="text-sm font-medium text-white/80">已上传文件 ({documents.length})</p>
           </div>
           <div className="max-h-32 overflow-y-auto space-y-1.5 pr-1">
             {documents.map((doc, index) => (
@@ -292,10 +292,10 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
               >
                 <FileText size={12} className="text-blue-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-white/90 truncate" title={doc.file_name}>
+                  <p className="text-xs text-white/90 truncate" title={doc.file_name}>
                     {doc.file_name}
                   </p>
-                  <p className="text-[9px] text-white/60">
+                  <p className="text-xs text-white/60">
                     {doc.chunk_count} 块 · {(doc.file_size / 1024).toFixed(1)} KB
                   </p>
                 </div>
@@ -310,7 +310,7 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
         <motion.button
           onClick={handleReset}
           disabled={resetting || uploading}
-          className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 text-red-400 text-xs font-medium hover:from-red-500/30 hover:to-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 text-red-400 text-sm font-medium hover:from-red-500/30 hover:to-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           whileHover={{ scale: resetting || uploading ? 1 : 1.02 }}
           whileTap={{ scale: resetting || uploading ? 1 : 0.98 }}
         >
@@ -346,7 +346,7 @@ const FileUploadPanel: React.FC<FileUploadPanelProps> = ({ onUploadSuccess, onRe
             ) : (
               <AlertCircle size={12} className="text-red-400" />
             )}
-            <p className={`text-xs ${
+            <p className={`text-sm ${
               message.type === 'success' ? 'text-green-400' : 'text-red-400'
             }`}>
               {message.text}

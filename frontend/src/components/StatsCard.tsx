@@ -61,7 +61,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
               <h2 className="text-sm font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 知识库统计
               </h2>
-              <p className="text-white/60 text-[10px]">实时数据概览</p>
+              <p className="text-white/60 text-xs">实时数据概览</p>
             </div>
           </div>
           
@@ -93,10 +93,10 @@ const StatsCard: React.FC<StatsCardProps> = ({ stats }) => {
                             <Icon size={12} className="text-white" />
                           </motion.div>
                           <div>
-                            <h3 className="text-[10px] font-medium text-white/80">{item.label}</h3>
+                            <h3 className="text-xs font-medium text-white/80">{item.label}</h3>
                             <div className="flex items-center gap-1 mt-0.5">
                               <div className="w-1 h-1 rounded-full bg-green-400 animate-pulse" />
-                              <span className="text-[9px] text-white/60">活跃状态</span>
+                              <span className="text-xs text-white/60">活跃状态</span>
                             </div>
                           </div>
                         </div>

@@ -80,10 +80,10 @@ const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
             <MessageCircle size={32} className="text-purple-400 drop-shadow-lg" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-sm font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               AI问答
             </h2>
-            <p className="text-white/60 text-sm">基于知识库内容的智能问答</p>
+            <p className="text-white/60 text-xs">基于知识库内容的智能问答</p>
           </div>
         </div>
 
@@ -127,7 +127,7 @@ const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
             exit={{ opacity: 0, y: -20 }}
             className="glass rounded-xl p-4 border border-red-500/30 bg-red-500/10"
           >
-            <p className="text-red-400">{error}</p>
+            <p className="text-sm text-red-400">{error}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -139,14 +139,14 @@ const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
+            className="space-y-3"
           >
-            <div className="glass rounded-2xl p-6 border border-white/10">
+            <div className="glass p-6 border border-white/10">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <MessageCircle size={20} className="text-purple-400" />
                 问题: {result.question}
               </h3>
-              <div className="text-white/80 leading-relaxed whitespace-pre-wrap">
+              <div className="text-base text-white/80 leading-relaxed whitespace-pre-wrap">
                 {result.answer}
               </div>
               {result.confidence > 0 && (
@@ -168,7 +168,7 @@ const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
                 </h4>
                 <div className="grid gap-3">
                   {result.sources.map((source, index) => (
-                    <div key={index} className="glass rounded-xl p-4 border border-white/10">
+                    <div key={index} className="glass rounded-lg p-4 border border-white/10">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <FileText size={16} className="text-blue-400" />
@@ -178,7 +178,7 @@ const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
                           相似度: {source.similarity.toFixed(3)}
                         </span>
                       </div>
-                      <p className="text-white/70 text-sm leading-relaxed line-clamp-2">
+                      <p className="text-white/70 text-base leading-relaxed line-clamp-2">
                         {source.text}
                       </p>
                     </div>
@@ -190,7 +190,25 @@ const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
         )}
       </AnimatePresence>
 
-      {/* No Result - 只在已提交且不在加载中时显示 */}
+      {/* Loading State - 加载中时显示 */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="text-center py-16"
+          >
+            <div className="glass rounded-3xl p-12 border border-white/10">
+              <div className="w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+              <h3 className="text-lg font-semibold text-white mb-2">等待回答...</h3>
+              <p className="text-white/60 text-sm">AI正在分析您的问题</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* No Result - 只在已提交且不在加载中且没有结果时显示 */}
       <AnimatePresence>
         {!result && !loading && hasSubmitted && (
           <motion.div
@@ -201,8 +219,8 @@ const QATab: React.FC<QATabProps> = ({ resetKey = 0 }) => {
           >
             <div className="glass rounded-3xl p-12 border border-white/10">
               <MessageCircle size={64} className="text-white/40 mx-auto mb-6" />
-              <h3 className="text-xl font-semibold text-white mb-2">等待回答...</h3>
-              <p className="text-white/60">AI正在分析您的问题</p>
+              <h3 className="text-lg font-semibold text-white mb-2">等待回答...</h3>
+              <p className="text-white/60 text-sm">AI正在分析您的问题</p>
             </div>
           </motion.div>
         )}
