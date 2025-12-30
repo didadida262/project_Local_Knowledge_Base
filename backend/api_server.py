@@ -130,8 +130,19 @@ class APIHandler(BaseHTTPRequestHandler):
     def handle_health(self):
         """处理健康检查请求"""
         try:
-            if APIHandler._retriever is None:
-                self.send_error(500, "Health check failed: retriever not initialized")
+            # 即使未完全初始化，也返回健康状态，让服务器可以被检测到
+            if APIHandler._kb is None or APIHandler._retriever is None:
+                health_data = {
+                    "status": "initializing",
+                    "message": "Server is running but models are still initializing",
+                    "kb_initialized": APIHandler._kb is not None,
+                    "retriever_initialized": APIHandler._retriever is not None
+                }
+                self.send_response(200)
+                self.send_cors_headers()
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(health_data).encode())
                 return
                 
             ollama_status = APIHandler._retriever.check_ollama_connection()
@@ -408,7 +419,7 @@ def run_server(port=5000):
     print("=" * 60)
     print("🚀 本地向量知识库 API服务器")
     print("=" * 60)
-    print(f"📡 服务地址: http://127.0.0.1:{port}")
+    # 注意：实际监听地址由环境变量 HOST 决定
     print("📋 可用API端点:")
     print("   GET  /api/stats - 获取统计信息")
     print("   GET  /api/documents - 获取文档列表")
@@ -525,16 +536,23 @@ def run_server(port=5000):
         print(f"❌ AI模型初始化失败: {e}")
         import traceback
         traceback.print_exc()
-        return
+        print("⚠️  警告: 服务器将在未完全初始化的情况下启动")
+        print("⚠️  某些功能可能不可用，但健康检查应该可以响应")
+        # 不返回，继续启动服务器，至少让健康检查可以工作
     
     print("🚀 正在启动HTTP服务器...")
     # 部署环境需要监听 0.0.0.0，本地开发使用 127.0.0.1
     host = os.getenv('HOST', '127.0.0.1')
     server_address = (host, port)
+    
+    print(f"📡 监听地址: {host}:{port}")
+    print(f"🌐 服务地址: http://{host}:{port}")
+    
     httpd = HTTPServer(server_address, APIHandler)
     
     print("=" * 60)
     print("✅ 服务器已就绪，可以接受连接")
+    print(f"📡 监听在: {host}:{port}")
     print("按 Ctrl+C 停止服务器")
     print("=" * 60)
     
