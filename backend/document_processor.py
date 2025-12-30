@@ -81,10 +81,40 @@ class DocumentProcessor:
         with open(file_path, 'r', encoding='utf-8') as f:
             md_content = f.read()
         
+        # 移除YAML front matter（如果存在，常见于Jekyll、Hugo等静态站点）
+        if md_content.startswith('---'):
+            parts = md_content.split('---', 2)
+            if len(parts) >= 3:
+                md_content = parts[2].strip()
+        
         # 转换为HTML再提取文本
-        html = markdown.markdown(md_content)
+        # 尝试使用扩展支持代码块、表格等（如果可用）
+        try:
+            html = markdown.markdown(
+                md_content,
+                extensions=['fenced_code', 'tables']
+            )
+        except:
+            # 如果扩展不可用，使用基本转换
+            html = markdown.markdown(md_content)
+        
         soup = BeautifulSoup(html, 'html.parser')
-        return soup.get_text()
+        
+        # 提取文本内容
+        # 保留代码块内容（代码块通常包含重要信息）
+        for code in soup.find_all(['code', 'pre']):
+            code_text = code.get_text()
+            if code_text and len(code_text.strip()) > 0:
+                # 在代码块前后添加标记，便于识别
+                code.string = f" [代码块: {code_text.strip()}] "
+        
+        # 提取所有文本
+        text = soup.get_text()
+        
+        # 清理多余的空白，但保留段落结构
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        
+        return '\n'.join(lines)
     
     def _process_pdf(self, file_path: Path) -> str:
         """处理PDF文件"""
@@ -113,12 +143,24 @@ class DocumentProcessor:
     
     def _clean_text(self, text: str) -> str:
         """清理文本"""
-        # 移除多余的空白字符
-        text = re.sub(r'\s+', ' ', text)
-        # 移除特殊字符
-        text = re.sub(r'[^\w\s\u4e00-\u9fff]', ' ', text)
-        # 移除多余的空格
-        text = ' '.join(text.split())
+        # 移除多余的空白字符（保留换行用于分段）
+        text = re.sub(r'[ \t]+', ' ', text)
+        text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)  # 最多保留两个连续换行
+        
+        # 移除特殊字符，但保留中文、英文、数字和基本标点
+        # 保留：中文、英文、数字、空格、换行、基本标点符号
+        text = re.sub(r'[^\w\s\u4e00-\u9fff，。！？；：、""''（）【】《》\n]', ' ', text)
+        
+        # 清理每行的多余空格，但保留段落结构
+        lines = text.split('\n')
+        cleaned_lines = []
+        for line in lines:
+            cleaned_line = ' '.join(line.split())
+            if cleaned_line:  # 保留非空行
+                cleaned_lines.append(cleaned_line)
+        
+        text = '\n'.join(cleaned_lines)
+        
         return text.strip()
     
     def _chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:

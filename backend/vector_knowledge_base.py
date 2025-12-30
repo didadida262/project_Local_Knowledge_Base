@@ -33,8 +33,35 @@ class VectorKnowledgeBase:
         self.storage_dir.mkdir(exist_ok=True)
         # 初始化模型
         print(f"🔄 加载模型: {model_name}")
-        self.model = SentenceTransformer(model_name)
-        self.dimension = self.model.get_sentence_embedding_dimension()
+        try:
+            # 设置环境变量增加超时时间（在导入SentenceTransformer之前设置）
+            os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '300'  # 5分钟超时
+            
+            # 尝试加载模型
+            # SentenceTransformer会自动使用本地缓存，如果模型已下载则不会重新下载
+            self.model = SentenceTransformer(model_name)
+            self.dimension = self.model.get_sentence_embedding_dimension()
+            print(f"✅ 模型加载成功")
+        except Exception as e:
+            error_msg = str(e)
+            print(f"❌ 模型加载失败: {error_msg}")
+            print("=" * 60)
+            print("💡 解决方案:")
+            if "timeout" in error_msg.lower() or "timed out" in error_msg.lower():
+                print("   网络连接超时，请尝试:")
+                print("   1. 检查网络连接")
+                print("   2. 如果模型已下载，检查缓存目录: ~/.cache/huggingface/")
+                print("   3. 可以手动下载模型到本地缓存")
+            elif "connection" in error_msg.lower():
+                print("   网络连接问题，请检查:")
+                print("   1. 是否可以访问 huggingface.co")
+                print("   2. 是否需要配置代理")
+            else:
+                print("   请检查错误信息并尝试:")
+                print("   1. 重新启动服务")
+                print("   2. 检查模型名称是否正确")
+            print("=" * 60)
+            raise
         
         # 初始化FAISS索引
         self.index = faiss.IndexFlatIP(self.dimension)  # 内积相似度
@@ -232,7 +259,7 @@ class VectorKnowledgeBase:
         """从磁盘加载知识库"""
         config_file = self.storage_dir / "config.json"
         if not config_file.exists():
-            print("📝 创建新的知识库")
+            # 知识库为空，不输出提示信息
             return
         
         try:
@@ -257,7 +284,8 @@ class VectorKnowledgeBase:
                 with open(chunks_file, 'r', encoding='utf-8') as f:
                     self.chunks = json.load(f)
             
-            print(f"📚 知识库已加载: {config['total_documents']} 文档, {config['total_chunks']} 块")
+            # 知识库加载完成，统计信息会在api_server中显示
+            pass
             
         except Exception as e:
             print(f"⚠️ 加载知识库失败: {str(e)}")

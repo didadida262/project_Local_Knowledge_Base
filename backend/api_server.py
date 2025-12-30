@@ -21,6 +21,7 @@ from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import threading
+import re
 
 # 添加backend目录到Python路径
 backend_dir = os.path.dirname(os.path.abspath(__file__))
@@ -220,17 +221,121 @@ class APIHandler(BaseHTTPRequestHandler):
             self.send_error(500, error_msg)
     
     def handle_upload(self):
-        """处理文件上传请求"""
+        """处理文件上传请求（支持文件夹上传）"""
         try:
-            # 简化的上传处理 - 实际项目中需要处理multipart/form-data
+            if APIHandler._kb is None:
+                self.send_error(500, "Upload failed: knowledge base not initialized")
+                return
+            
+            # 解析multipart/form-data
+            content_type = self.headers.get('Content-Type', '')
+            if not content_type.startswith('multipart/form-data'):
+                self.send_error(400, "Content-Type must be multipart/form-data")
+                return
+            
+            # 解析boundary
+            boundary_match = re.search(r'boundary=([^;]+)', content_type)
+            if not boundary_match:
+                self.send_error(400, "Boundary not found in Content-Type")
+                return
+            
+            boundary = boundary_match.group(1).strip('"')
+            boundary_bytes = ('--' + boundary).encode('utf-8')
+            
+            # 读取请求体
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            
+            # 分割multipart数据
+            parts = post_data.split(boundary_bytes)
+            
+            # 创建临时上传目录
+            project_root = Path(__file__).parent.parent
+            upload_dir = project_root / "uploads"
+            upload_dir.mkdir(exist_ok=True)
+            
+            uploaded_files = []
+            supported_extensions = {'.txt', '.md', '.pdf', '.docx', '.html', '.htm'}
+            
+            # 处理所有上传的文件
+            for part in parts:
+                if not part.strip() or part.strip() == b'--':
+                    continue
+                
+                # 查找Content-Disposition头
+                header_end = part.find(b'\r\n\r\n')
+                if header_end == -1:
+                    continue
+                
+                header = part[:header_end].decode('utf-8', errors='ignore')
+                file_data = part[header_end + 4:]
+                
+                # 提取文件名（可能包含路径，因为文件夹上传）
+                # 检查是否有name="files"（多个文件）或name="file"（单个文件）
+                name_match = re.search(r'name="([^"]+)"', header)
+                filename_match = re.search(r'filename="([^"]+)"', header)
+                
+                if filename_match:
+                    filename = filename_match.group(1)
+                    
+                    # 移除末尾的\r\n
+                    file_data = file_data.rstrip(b'\r\n')
+                    
+                    if filename and file_data:
+                        # 检查文件扩展名
+                        file_ext = Path(filename).suffix.lower()
+                        if file_ext not in supported_extensions:
+                            continue  # 跳过不支持的文件格式
+                        
+                        # 保持文件夹结构（如果上传的是文件夹）
+                        # 移除可能的路径分隔符，只保留文件名
+                        safe_filename = filename.replace('\\', '/').split('/')[-1]
+                        
+                        # 保存文件
+                        file_path = upload_dir / safe_filename
+                        with open(file_path, 'wb') as f:
+                            f.write(file_data)
+                        
+                        uploaded_files.append(str(file_path))
+            
+            if not uploaded_files:
+                self.send_error(400, "No supported files found in upload")
+                return
+            
+            # 批量添加文档到知识库
+            results = []
+            errors = []
+            
+            for file_path in uploaded_files:
+                try:
+                    doc_info = APIHandler._kb.add_document(file_path)
+                    results.append(doc_info)
+                except Exception as e:
+                    errors.append(f"{Path(file_path).name}: {str(e)}")
+            
+            # 保存知识库
+            APIHandler._kb.save_knowledge_base()
+            
+            # 构建响应消息
+            if errors:
+                message = f"成功处理 {len(results)} 个文件，失败 {len(errors)} 个"
+            else:
+                message = f"成功处理 {len(results)} 个文件"
+            
             self.send_response(200)
             self.send_cors_headers()
             self.end_headers()
             self.wfile.write(json.dumps({
                 "success": True,
-                "message": "文件上传功能暂未实现，请使用添加文档功能"
+                "message": message,
+                "processed_count": len(results),
+                "error_count": len(errors),
+                "documents": results,
+                "errors": errors if errors else None
             }).encode())
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             self.send_error(500, f"Upload failed: {str(e)}")
     
     def handle_add_document(self):
@@ -280,26 +385,16 @@ class APIHandler(BaseHTTPRequestHandler):
             # 清空现有知识库
             APIHandler._kb.clear_knowledge_base()
             
-            # 重新加载docs目录
-            # 获取项目根目录（backend的父目录）
-            project_root = Path(__file__).parent.parent
-            docs_dir = project_root / "docs"
-            if docs_dir.exists():
-                results = APIHandler._kb.add_directory(str(docs_dir))
-                
-                # 保存知识库
-                APIHandler._kb.save_knowledge_base()
-                
-                self.send_response(200)
-                self.send_cors_headers()
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    "success": True,
-                    "message": f"知识库重建完成，处理了 {len(results)} 个文档",
-                    "documents": results
-                }).encode())
-            else:
-                self.send_error(404, "docs directory not found")
+            # 保存清空后的知识库
+            APIHandler._kb.save_knowledge_base()
+            
+            self.send_response(200)
+            self.send_cors_headers()
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "message": "知识库已清空，请通过上传文件重新构建"
+            }).encode())
         except Exception as e:
             self.send_error(500, f"Rebuild failed: {str(e)}")
     
@@ -328,31 +423,18 @@ def run_server(port=5000):
     
     # 在启动HTTP服务器之前完全初始化所有模型
     try:
-        print("🔄 正在初始化知识库...")
+        print("🔄 正在加载向量模型...")
         kb = VectorKnowledgeBase()
-        print("✅ 知识库初始化完成")
         
-        # 检查是否需要自动加载docs目录
-        print("🔍 检查默认语料库...")
+        # 获取知识库初始状态
         kb_stats_before = kb.get_stats()
-        print(f"📊 当前知识库统计: {kb_stats_before.get('total_documents', 0)} 文档, {kb_stats_before.get('total_vectors', 0)} 向量")
+        total_docs = kb_stats_before.get('total_documents', 0)
+        total_vectors = kb_stats_before.get('total_vectors', 0)
         
-        # 如果知识库是空的，尝试加载docs目录
-        if kb_stats_before.get('total_documents', 0) == 0:
-            # 获取项目根目录（backend的父目录）
-            project_root = Path(__file__).parent.parent
-            docs_dir = project_root / "docs"
-            print(f"📝 知识库为空，检查并加载docs目录: {docs_dir.absolute()}")
-            
-            if docs_dir.exists():
-                print("📂 发现docs目录，正在加载默认语料库...")
-                results = kb.add_directory(str(docs_dir))
-                kb.save_knowledge_base()
-                print(f"✅ 加载完成：添加了 {len(results)} 个文档到知识库")
-            else:
-                print("⚠️ docs目录不存在，跳过默认语料库加载")
+        if total_docs == 0:
+            print("✅ 向量模型加载完成，知识库为空，等待用户上传文件")
         else:
-            print("✅ 知识库不为空，跳过默认语料库加载")
+            print(f"✅ 向量模型加载完成，知识库已包含 {total_docs} 文档, {total_vectors} 向量")
         
         print("🔄 正在初始化检索器...")
         retriever = KnowledgeRetriever(kb)
@@ -365,7 +447,7 @@ def run_server(port=5000):
         if kb is None:
             raise Exception("知识库对象为空")
         kb_stats = kb.get_stats()
-        print(f"📊 知识库统计: {kb_stats.get('total_documents', 0)} 文档, {kb_stats.get('total_vectors', 0)} 向量")
+        print(f"📊 知识库状态: {kb_stats.get('total_documents', 0)} 文档, {kb_stats.get('total_vectors', 0)} 向量")
         
         # 测试检索器功能
         if retriever is None:
