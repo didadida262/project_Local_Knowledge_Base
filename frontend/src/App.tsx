@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Search, MessageCircle, FileText, BarChart3, Sparkles, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import StatsCard from './components/StatsCard'
-import SearchTab from './components/SearchTab'
 import QATab from './components/QATab'
-import DocumentsTab from './components/DocumentsTab'
+import FileUploadPanel from './components/FileUploadPanel'
 import LoadingScreen from './components/LoadingScreen'
 import { getStats } from './services/api'
 
@@ -15,8 +14,11 @@ interface Stats {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'search' | 'qa' | 'documents'>('search')
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [stats, setStats] = useState<Stats>({
+    total_vectors: 0,
+    total_documents: 0,
+    unique_files: 0
+  })
   const [loading, setLoading] = useState(true)
   const [loadingMessage, setLoadingMessage] = useState('正在连接服务器...')
   const [loadingProgress, setLoadingProgress] = useState(0)
@@ -65,11 +67,6 @@ function App() {
     }
   }
 
-  const tabs = [
-    { id: 'search', label: '智能搜索', icon: Search, gradient: 'from-blue-500 to-cyan-500' },
-    { id: 'qa', label: 'AI问答', icon: MessageCircle, gradient: 'from-purple-500 to-pink-500' },
-    { id: 'documents', label: '文档管理', icon: FileText, gradient: 'from-green-500 to-emerald-500' },
-  ] as const
 
   // 显示加载屏幕
   if (loading) {
@@ -82,7 +79,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
+    <div className="h-screen bg-black relative overflow-hidden flex flex-col">
       {/* Aceternity风格背景 */}
       <div className="absolute inset-0">
         {/* 主背景渐变 */}
@@ -198,87 +195,41 @@ function App() {
           </div>
         </motion.div>
 
-        {/* Stats Card */}
-        <AnimatePresence>
-          {stats && (
+        {/* 主内容区域 - 左右分栏 */}
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full max-w-[1800px] mx-auto px-6 py-4">
+            <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-4">
+            {/* 左侧控制面板 */}
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="mt-8"
+              className="lg:col-span-3 space-y-4 overflow-y-auto"
             >
-              <StatsCard stats={stats} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 主内容区域 */}
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          {/* 导航标签 */}
-          <motion.div 
-            className="flex gap-2 mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            {tabs.map((tab, index) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
-              return (
-                <motion.button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative flex items-center gap-3 px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${
-                    isActive 
-                      ? 'text-white shadow-lg' 
-                      : 'text-white/60 hover:text-white hover:bg-white/5'
-                  }`}
-                  style={{
-                    background: isActive 
-                      ? `linear-gradient(135deg, ${tab.gradient.split(' ')[1]} 0%, ${tab.gradient.split(' ')[3]} 100%)` 
-                      : 'transparent'
-                  }}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 + index * 0.1 }}
-                >
-                  <Icon size={18} />
-                  <span>{tab.label}</span>
-                  {isActive && (
-                    <motion.div
-                      className="absolute inset-0 rounded-xl border-2 border-white/30"
-                      layoutId="activeTab"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                </motion.button>
-              )
-            })}
-          </motion.div>
-
-          {/* 内容区域 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-          >
-            <AnimatePresence mode="wait">
+              {/* 知识库统计 */}
               <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, x: 20, scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
               >
-                {activeTab === 'search' && <SearchTab />}
-                {activeTab === 'qa' && <QATab />}
-                {activeTab === 'documents' && <DocumentsTab onUpload={loadStats} />}
+                <StatsCard stats={stats} />
               </motion.div>
-            </AnimatePresence>
-          </motion.div>
+
+              {/* 文件上传面板 */}
+              <FileUploadPanel onUploadSuccess={loadStatsWithRetry} />
+            </motion.div>
+
+            {/* 右侧问答区域 */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="lg:col-span-9 overflow-y-auto"
+            >
+              <QATab />
+            </motion.div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
