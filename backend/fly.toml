@@ -1,0 +1,39 @@
+# fly.toml 配置文件
+# 使用 flyctl launch 命令会自动生成此文件
+# 以下是推荐配置
+
+app = "knowledge-base-backend"
+primary_region = "sjc"  # 根据你的位置选择，可选: sjc, ord, dfw, iad, lhr, cdg, sin
+
+[build]
+
+[env]
+  PORT = "5000"
+  HOST = "0.0.0.0"
+  HF_HUB_DOWNLOAD_TIMEOUT = "300"
+
+[[services]]
+  internal_port = 5000
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  [[services.http_checks]]
+    interval = "10s"
+    timeout = "2s"
+    grace_period = "5s"
+    method = "GET"
+    path = "/api/health"
+
